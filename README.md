@@ -27,9 +27,20 @@ On macOS platforms running an Apple Silicon processor, you may need to install `
 
 A Dockerfile is provided within the project. To build the image, run `docker build -t fluidos-energy-demand-predictor .`
 
-You may run the image using classic Docker, `docker-compose`, or any other container orchestration software of your choice.
+Then, run the image using the following command:
 
-For your convenience, a `docker-compose.yml` file is provided within the project. Before deploying, make sure to edit the following line:
+```
+docker run -it \
+    --name=predictor \
+    -v /path/to/data/folder:/app/data \
+    -v /path/to/models/folder:/app/models \
+    -v /path/to/out/folder:/app/out \
+    -e TZ=Europe/Rome \
+    --restart=unless-stopped \
+    ghcr.io/risingfbk/fluidos-energy-predictor:github
+```
+
+Before deploying, make sure to edit the following line:
 
 ```
   - /path/to/data/folder:/app/data
@@ -52,7 +63,7 @@ The data folder must contain the following files:
 └── spec2008
 ```
 
-Samples of these files are provided in the *releases* section of this repository. The `gcd` file contains the workload data from the Google Cluster Data ([link](https://github.com/google/cluster-data)), while the SPEC2008 contains power profiles from the SPEC2008 benchmark suite ([link](https://www.spec.org/power_ssj2008/results/power_ssj2008.html)).
+Samples of these files are provided in the *releases* section of this repository. The `gcd` file contains the workload data from the Google Cluster Data version 3 ([repository](https://github.com/google/cluster-data), [document](https://drive.google.com/file/d/10r6cnJ5cJ89fPWCgj7j4LtLBqYN9RiI9/view)), while the SPEC2008 contains power profiles from the SPEC2008 benchmark suite ([link](https://www.spec.org/power_ssj2008/results/power_ssj2008.html)).
 The `spec2008_agg` file contains the aggregated power profiles from the SPEC2008 benchmark suite.
 
 For your convenience, scripts for fetching `spec2008` data and generating both `gcd` and `spec2008` data are provided in the `src/datasets/` folder.
