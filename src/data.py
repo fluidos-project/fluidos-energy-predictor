@@ -27,6 +27,7 @@ def fetch_power_curve(file: str) -> list[np.ndarray]:
         file = f"{file}.json"
 
     if os.path.exists(f"{spec_folder}/{file}"):
+        log.info(f"Loading power curve from {spec_folder}/{file}")
         with open(f"{spec_folder}/{file}", "r") as f:
             data = json.load(f)
             cpu_data = data["data"]["Power"]
@@ -37,7 +38,12 @@ def fetch_power_curve(file: str) -> list[np.ndarray]:
             mem_data = [0, 0.1, 0.2, 0.4, 0.8, 1.6, 2.4, 3.2, 4.8, 9.6, 18.4]
             mem_data = np.array(mem_data)
 
-            installed_memory = data["memory"]
+            if "memory" in data:
+                installed_memory = data["memory"]
+            else:
+                log.warning("No memory data found in power curve file, using default values (based on 8GB)")
+                installed_memory = 8
+
             mem_data *= installed_memory / 8
 
             if len(cpu_data) != len(mem_data):
@@ -45,19 +51,20 @@ def fetch_power_curve(file: str) -> list[np.ndarray]:
             if len(cpu_data) != 11:
                 raise ValueError("CPU and memory data have unexpected length, must be 11")
 
-            log.info(f"Loaded power curve from {file}.json; using {cpu_data} for CPU and {mem_data} for memory")
+            log.info(f"CPU energy consumption: {list(cpu_data)}")
+            log.info(f"Memory energy consumption: {list(mem_data)}")
             return [cpu_data, mem_data]
     else:
         raise FileNotFoundError(f"File {file}.json not found in {spec_folder}")
 
 
 
-def fetch_datasets():
+def fetch_datasets(folder: str, banlist_file: str = None) -> list[np.ndarray]:
     gcd_folder = pm.GCD_FOLDER
 
     banlist = []
-    if os.path.exists("banlist"):
-        with open("banlist", "r") as f:
+    if os.path.exists(banlist_file):
+        with open(banlist_file, "r") as f:
             for line in f:
                 banlist.append(line.strip() + ".csv")
     else:
@@ -70,7 +77,11 @@ def fetch_datasets():
     available_folders = [i for i in os.listdir(gcd_folder) if "json" not in i and "npy" not in i and "cache" not in i]
     if len(available_folders) == 0:
         raise EnvironmentError(f"No folders found in {gcd_folder}. Please run obtain some datasets first.")
-    chosen_folder = random.choices(available_folders, k=1)[0]
+
+    if folder is None or folder == "":
+        chosen_folder = random.choices(available_folders, k=1)[0]
+    else:
+        chosen_folder = folder
 
     files = [i for i in os.listdir(os.path.join(f"{gcd_folder}", chosen_folder)) if "seq" in i]
     files = sorted([i for i in files], key=lambda x: int(x.split("_")[-1].split("-")[0]))
@@ -83,14 +94,16 @@ def fetch_datasets():
     train_data = [os.path.join(chosen_folder, i) for i in files[:pm.TRAIN_FILE_AMOUNT]]
     test_data = [os.path.join(chosen_folder, i) for i in files[pm.TRAIN_FILE_AMOUNT:]]
 
-    log.info("Verifying test files...")
+    log.info(f"Verifying test files ({len(test_data)} required)...")
     for file in test_data:
         if file in banlist:
             raise EnvironmentError(f"File {file} is banned. Please refrain from using it ever again.")
         if not os.path.exists(os.path.join(pm.GCD_FOLDER, file)):
             raise EnvironmentError(f"File {file} does not exist.")
 
-    log.info("Verifying train files...")
+    log.info(f"Training files: {str(train_data)}")
+
+    log.info(f"Verifying train files ({len(train_data)} required)...")
     for file in train_data:
         if file in banlist:
             raise EnvironmentError(f"File {file} is banned. Please refrain from using it ever again.")
@@ -101,8 +114,7 @@ def fetch_datasets():
         raise EnvironmentError(
             "Something went wrong. You need to specify at least one file for training and one for testing.")
 
-    log.info("Training files: " + str(train_data))
-    log.info("Testing files: " + str(test_data))
+    log.info(f"Testing files: {str(test_data)}")
 
     return train_data, test_data
 

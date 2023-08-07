@@ -4,7 +4,7 @@ from src.support.dt import WEEK_IN_MINUTES
 
 GRANULARITY = 15
 # Offset in minutes between each file
-OFFSET = 24 * 60
+# OFFSET = 24 * 60
 
 STEPS_IN = WEEK_IN_MINUTES // GRANULARITY
 STEPS_OUT = 1
@@ -27,6 +27,7 @@ MODEL_FOLDER = "models"
 GCD_FOLDER = "data/gcd"
 SPEC_FOLDER = "data/spec2008_agg"
 CACHE_FOLDER = "data/cache"
+BANLIST_FILE = "banlist"
 
 TEST_FILE_AMOUNT = 24
 TRAIN_FILE_AMOUNT = 24

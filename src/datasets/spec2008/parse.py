@@ -53,12 +53,12 @@ def main():
         if folder == ".DS_Store":
             continue
 
-        if not os.path.isdir("data/spec2008/" + folder):
-            print("Skipping file " + folder + " as it is not a folder.")
+        if not os.path.isdir(f"data/spec2008/{folder}"):
+            print(f"Skipping file {folder} as it is not a folder.")
             continue
 
-        if os.path.exists("data/spec2008_agg/" + folder + ".json"):
-            print("Skipping folder " + folder + " as it already exists.")
+        if os.path.exists(f"data/spec2008_agg/{folder}.json"):
+            print(f"Skipping folder {folder} as it already exists.")
             continue
 
         merge(folder)

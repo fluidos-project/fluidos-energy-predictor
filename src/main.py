@@ -99,6 +99,8 @@ def main():
                         help='Number of epochs (if unspecified, will be prompted)')
     parser.add_argument('--action', '-a', type=str, default=None,
                         help='Action to perform (train, search hyperparameters, test)')
+    parser.add_argument('--machine', '-M', type=str, default=None,
+                        help='GCD machine files to use (if unspecified, will be chosen randomly)')
     args = parser.parse_args()
 
     if args.model is not None:
@@ -121,7 +123,7 @@ def main():
     os.makedirs(pm.GCD_FOLDER, exist_ok=True)
     os.makedirs(pm.CACHE_FOLDER, exist_ok=True)
 
-    train_data, test_data = fetch_datasets()
+    train_data, test_data = fetch_datasets(args.machine, banlist_file=pm.BANLIST_FILE)
     power_curve = fetch_power_curve(args.curve)
 
     models = sorted([i.split(".")[0] for i in os.listdir(pm.MODEL_FOLDER)])

@@ -11,7 +11,7 @@ from src.support.log import tqdm_wrapper
 
 if __name__ == "__main__":
     granularity = pm.GRANULARITY
-    offset = pm.OFFSET
+    # offset = pm.OFFSET
     gcd_folder = pm.GCD_FOLDER
 
     folder_start = f"{gcd_folder}/json"
