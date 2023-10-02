@@ -11,7 +11,7 @@ certain machine,
 and outputs the predicted energy demand for the following day.
 
 -----
-> **As of August 7th, 2023, this program is meant as a proof-of-concept, still in development and is
+> **As of October 2nd, 2023, this program is meant as a proof-of-concept, still in development and is
 not ready for production use. Features may be added or removed at any time. Accuracy may not be perfect.
 The program is provided as-is, with no guarantees of any kind.**
 

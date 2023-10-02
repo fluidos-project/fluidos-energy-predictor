@@ -166,7 +166,6 @@ def parse_page(url):
     return df
 
 
-
 def merge(folder):
     print("Merging folder " + folder)
     data = []

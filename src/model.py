@@ -49,6 +49,12 @@ def new_model(hp: kt.HyperParameters = None) -> tf.keras.models.Model:
 
     return model
 
+    # from keras.utils.vis_utils import plot_model
+
+    # plot_model(model, to_file='model_plot.png',
+    # show_shapes=True, show_layer_names=False,
+    #           rankdir="LR", dpi=72)
+
 
 def predict(model: tf.keras.Sequential,
             test_data: list[str],

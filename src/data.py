@@ -5,10 +5,9 @@ import random
 
 import numpy as np
 
-from src.support import dt
 from src import parameters as pm
+from src.support import dt
 from src.support.log import tqdm_wrapper
-
 
 
 def fetch_power_curve(file: str) -> list[np.ndarray]:
@@ -56,7 +55,6 @@ def fetch_power_curve(file: str) -> list[np.ndarray]:
             return [cpu_data, mem_data]
     else:
         raise FileNotFoundError(f"File {file}.json not found in {spec_folder}")
-
 
 
 def fetch_datasets(folder: str, banlist_file: str = None) -> list[np.ndarray]:

@@ -8,8 +8,8 @@ import tensorflow as tf
 import src.model as modelmd
 import src.parameters as pm
 from src.data import obtain_vectors, fetch_datasets, fetch_power_curve
-from src.support.log import initialize_log
 from src.plot import plot_history
+from src.support.log import initialize_log
 
 
 def ask_model_name(models: list[str]) -> str:
@@ -181,7 +181,8 @@ def main():
         log.info(f"Training data shape: {xx.shape} -> {y.shape}")
 
         cb = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=pm.PATIENCE),
-              tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.5, patience=200, verbose=1, mode='min', min_lr=1e-6),
+              tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.5, patience=200, verbose=1, mode='min',
+                                                   min_lr=1e-6),
               tf.keras.callbacks.BackupAndRestore(pm.MODEL_FOLDER + "/backup"),
               tf.keras.callbacks.ModelCheckpoint(pm.MODEL_FOLDER + "/model.h5", save_best_only=True,
                                                  save_weights_only=False, monitor='val_loss', mode='min')]
