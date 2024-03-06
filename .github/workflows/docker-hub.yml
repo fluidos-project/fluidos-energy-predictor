@@ -43,7 +43,7 @@ jobs:
           short_description: 'Predicting the energy and carbon demand of FLUIDOS nodes.'
           readme_file: 'README.md'
 
-      - name: Build and push Docker image
+      - name: Build and push Docker image, github tag
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -51,4 +51,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          build-args: GIT_TAG=${{ env.GIT_TAG }}
+      
+      - name: Build Docker image with local git tag 
+        run: |
+          docker build --build-arg GIT_TAG=${{ env.GIT_TAG }} -t fluidos/energy-predictor:${{ env.GIT_TAG }} .
+          
+      - name: Push Docker image
+        run: |
+          docker push fluidos/energy-predictor:${{ env.GIT_TAG }}
