@@ -32,13 +32,6 @@ jobs:
         with:
           images: fluidos/energy-predictor
 
-      - name: Docker Hub Description
-        uses: peter-evans/dockerhub-description@v4
-        with:
-          username: fluidos
-          password: ${{ secrets.DOCKER_HUB_WRITE_TOKEN }}
-          repository: fluidos//energy-predictor
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
