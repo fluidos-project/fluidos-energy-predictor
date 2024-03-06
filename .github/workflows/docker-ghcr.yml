@@ -9,11 +9,11 @@ on:
 #  schedule:
 #    - cron: '24 21 * * *'
   push:
-    branches: [ "github" ]
+    branches: [ "rising" ]
     # Publish semver tags as releases.
     tags: [ 'v*.*.*' ]
   pull_request:
-    branches: [ "github" ]
+    branches: [ "rising" ]
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -95,3 +95,19 @@ jobs:
         # This step uses the identity token to provision an ephemeral certificate
         # against the sigstore community Fulcio instance.
         run: echo "${TAGS}" | xargs -I {} cosign sign --yes {}@${DIGEST}
+
+  clean:
+    name: Clean up unused images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete containers older than two months
+        uses: snok/container-retention-policy@v2
+        with:
+          image-names: ${{ env.IMAGE_NAME }}
+          cut-off: Two months ago UTC
+          account-type: org
+          org-name: risingfbk
+          keep-at-least: 3
+          untagged-only: true
+          skip-tags: rising
+          token: ${{ secrets.GITHUB_TOKEN }}
