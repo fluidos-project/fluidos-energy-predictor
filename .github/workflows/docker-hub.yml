@@ -32,6 +32,17 @@ jobs:
         with:
           images: fluidos/energy-predictor
 
+      - name: Push README to Docker Hub
+        uses: christian-korneck/update-container-description-action@v1
+        env:
+          DOCKER_USER: fluidos
+          DOCKER_PASS: ${{ secrets.DOCKER_HUB_WRITE_TOKEN }}
+        with:
+          destination_container_repo: fluidos/energy-predictor
+          provider: dockerhub
+          short_description: 'Predicting the energy and carbon demand of FLUIDOS nodes.'
+          readme_file: 'README.md'
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
