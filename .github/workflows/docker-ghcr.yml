@@ -20,6 +20,9 @@ env:
   REGISTRY: ghcr.io
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
+  IMAGE_BASE_NAME: fluidos-energy-predictor
+  ORG_NAME: risingfbk
+  BASE_BRANCH: rising
 
 
 jobs:
@@ -103,12 +106,12 @@ jobs:
       - name: Delete containers older than two months
         uses: snok/container-retention-policy@v2
         with:
-          image-names: ${{ env.IMAGE_NAME }}
+          image-names: ${{ en}}
           cut-off: Two months ago UTC
           account-type: org
-          org-name: risingfbk
+          org-name: ${{ env.ORG_NAME }}
           keep-at-least: 3
           untagged-only: true
-          skip-tags: rising
+          skip-tags: ${{ env.BASE_BRANCH }}
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
