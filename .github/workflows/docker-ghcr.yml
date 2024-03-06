@@ -106,7 +106,7 @@ jobs:
       - name: Delete containers older than two months
         uses: snok/container-retention-policy@v2
         with:
-          image-names: ${{ en}}
+          image-names: ${{ env.IMAGE_BASE_NAME }}
           cut-off: Two months ago UTC
           account-type: org
           org-name: ${{ env.ORG_NAME }}
