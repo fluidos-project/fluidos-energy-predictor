@@ -36,7 +36,7 @@ jobs:
         uses: christian-korneck/update-container-description-action@v1
         env:
           DOCKER_USER: fluidos
-          DOCKER_PASS: ${{ secrets.DOCKER_HUB_WRITE_TOKEN }}
+          DOCKER_PASS: ${{ secrets.DOCKER_HUB_README_TOKEN }}
         with:
           destination_container_repo: fluidos/energy-predictor
           provider: dockerhub
