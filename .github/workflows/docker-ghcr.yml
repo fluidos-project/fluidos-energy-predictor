@@ -111,7 +111,6 @@ jobs:
           account-type: org
           org-name: ${{ env.ORG_NAME }}
           keep-at-least: 3
-          untagged-only: true
           skip-tags: ${{ env.BASE_BRANCH }}
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
