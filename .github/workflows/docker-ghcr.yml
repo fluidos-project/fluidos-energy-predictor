@@ -111,3 +111,4 @@ jobs:
           untagged-only: true
           skip-tags: rising
           token: ${{ secrets.GITHUB_TOKEN }}
+          token-type: github-token
