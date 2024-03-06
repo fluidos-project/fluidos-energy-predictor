@@ -43,7 +43,7 @@ jobs:
           fetch-depth: 0
           fetch-tags: true 
 
-      - name: Set GIT_TAG env var
+      - name: Set running Git tag
         run: echo "GIT_TAG=$(git describe --tags --always)" >> $GITHUB_ENV
 
       - name: Set last version Git tag
@@ -110,6 +110,7 @@ jobs:
 
   clean:
     name: Clean up unused images
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Delete non-release images 

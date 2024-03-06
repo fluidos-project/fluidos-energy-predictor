@@ -1,5 +1,8 @@
 # FLUIDOS Energy Demand Predictor
 
+[![Publish Docker Image on GHCR - GitHub Container Registry](https://github.com/risingfbk/fluidos-energy-predictor/actions/workflows/docker-ghcr.yml/badge.svg)](https://github.com/risingfbk/fluidos-energy-predictor/actions/workflows/docker-ghcr.yml)
+[![Publish Docker image on FLUIDOS Docker Hub](https://github.com/fluidos-project/fluidos-energy-predictor/actions/workflows/docker-hub.yml/badge.svg)](https://github.com/fluidos-project/fluidos-energy-predictor/actions/workflows/docker-hub.yml)
+
 ## Overview
 
 This is a project to predict energy demand for a FLUIDOS node. It uses a neural network that takes as input, given a
