@@ -37,8 +37,17 @@ jobs:
       id-token: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - name: Check out the repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true 
+
+      - name: Set GIT_TAG env var
+        run: echo "GIT_TAG=$(git describe --tags --always)" >> $GITHUB_ENV
+
+      - name: Set last version Git tag
+        run: echo "VERSION=$(git describe --tags --always --abbrev=0)" >> $GITHUB_ENV
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
@@ -78,7 +87,7 @@ jobs:
         with:
           context: .
           push: ${{ github.event_name != 'pull_request' }}
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.BASE_BRANCH }} , ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.GIT_TAG }} , ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -103,14 +112,14 @@ jobs:
     name: Clean up unused images
     runs-on: ubuntu-latest
     steps:
-      - name: Delete containers older than two months
+      - name: Delete non-release images 
         uses: snok/container-retention-policy@v2
         with:
           image-names: ${{ env.IMAGE_BASE_NAME }}
-          cut-off: Two months ago UTC
+          cut-off: 20 minutes ago UTC
           account-type: org
           org-name: ${{ env.ORG_NAME }}
           keep-at-least: 3
-          skip-tags: ${{ env.BASE_BRANCH }}
+          skip-tags: ${{ env.BASE_BRANCH }} , ${{ env.VERSION }}
           token: ${{ secrets.GITHUB_TOKEN }}
           token-type: github-token
