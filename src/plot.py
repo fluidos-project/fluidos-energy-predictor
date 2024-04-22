@@ -28,11 +28,11 @@ def plot_prediction(yhat, y2, columns, start=0, end=None):
 
     plt.figure(figsize=(15, 8))
     # First, plot what was before
-    plt.plot(prediction, label='prediction', linestyle='-.', alpha=.7, color='r')
-    plt.plot(truth, label='actual', linestyle='-', alpha=.5, color='b')
+    plt.plot(prediction, label="prediction", linestyle="-.", alpha=0.7, color="r")
+    plt.plot(truth, label="actual", linestyle="-", alpha=0.5, color="b")
     if columns is not None:
         for j in columns:
-            plt.axvline(x=j, linestyle='--', alpha=.3, color='g')
+            plt.axvline(x=j, linestyle="--", alpha=0.3, color="g")
     plt.legend()
     plt.xlabel("Predicted day")
     plt.ylabel("Power (kWh)")
@@ -68,11 +68,11 @@ def plot_history(history):
         plt.figure(figsize=(15, 8))
         plt.plot(history.history[key.replace("val_", "")])
         plt.plot(history.history[key])
-        plt.yscale('log')
-        plt.title('Loss and validation loss over epochs')
+        plt.yscale("log")
+        plt.title("Loss and validation loss over epochs")
         plt.ylabel("Loss")
-        plt.xlabel('Epoch')
-        plt.legend(['train', 'validate'], loc='upper left')
+        plt.xlabel("Epoch")
+        plt.legend(["train", "validate"], loc="upper left")
         plt.savefig(pm.LOG_FOLDER + "/" + key.replace("val_", "") + ".png")
         plt.close()
 

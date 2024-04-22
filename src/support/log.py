@@ -29,7 +29,7 @@ class CustomFormatter(log.Formatter):
             log.INFO: grey + __format + reset,
             log.WARNING: yellow + __format + reset,
             log.ERROR: red + __format + reset,
-            log.CRITICAL: bold_red + __format + reset
+            log.CRITICAL: bold_red + __format + reset,
         }
 
         self.formats = formats
@@ -40,14 +40,14 @@ class CustomFormatter(log.Formatter):
         return formatter.format(record)
 
 
-def initialize_log(log_level: str = "DEBUG",
-                   name: str = "main",
-                   console_only: bool = False) -> None:
+def initialize_log(
+    log_level: str = "DEBUG", name: str = "main", console_only: bool = False
+) -> None:
     hostname = os.uname()[1]
-    uid = dt.datetime.now().strftime('%Y%m%d_%H%M%S.%f_') + "_" + hostname
+    uid = dt.datetime.now().strftime("%Y%m%d_%H%M%S.%f_") + "_" + hostname
 
     pm.LOG_FOLDER = f"out/{uid}/"
-    formatter = f'[{uid}] - %(asctime)s - %(levelname)s - %(message)s'
+    formatter = f"[{uid}] - %(asctime)s - %(levelname)s - %(message)s"
 
     os.makedirs(pm.LOG_FOLDER, exist_ok=True)
 
@@ -73,7 +73,7 @@ def initialize_log(log_level: str = "DEBUG",
     if not console_only:
         # Add logging to log file
         lname = pm.LOG_FOLDER + name + ".log"
-        filehandler = log.FileHandler(lname, mode='a')
+        filehandler = log.FileHandler(lname, mode="a")
         filehandler.setLevel(log_level)
         filehandler.setFormatter(CustomFormatter(formatter, colored=False))
         log.getLogger().addHandler(filehandler)
@@ -81,8 +81,10 @@ def initialize_log(log_level: str = "DEBUG",
 
 def tqdm_wrapper(iterable, **kwargs):
     # get name of calling function
-    return tqdm(iterable,
-                desc=f"Function {inspect.stack()[1][3]} cycling over a {type(iterable).__name__}",
-                leave=False,
-                file=sys.stdout,
-                **kwargs)
+    return tqdm(
+        iterable,
+        desc=f"Function {inspect.stack()[1][3]} cycling over a {type(iterable).__name__}",
+        leave=False,
+        file=sys.stdout,
+        **kwargs,
+    )

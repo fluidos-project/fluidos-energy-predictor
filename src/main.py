@@ -3,6 +3,7 @@ import logging as log
 import os
 from datetime import datetime
 
+import numpy as np
 import tensorflow as tf
 
 import src.model as modelmd
@@ -17,7 +18,7 @@ def ask_model_name(models: list[str]) -> str:
         print(f"Available models:")
         for i in range(len(models)):
             model_name = models[i]
-            if os.path.isfile(pm.MODEL_FOLDER + "/" + model_name + "/model.h5"):
+            if os.path.isfile(pm.MODEL_FOLDER + "/" + model_name + "/model.keras"):
                 print(f"\t{i + 1}) {model_name} (trained)")
             else:
                 print(f"\t{i + 1}) {model_name} (status unknown)")
@@ -48,10 +49,12 @@ def ask_model_name(models: list[str]) -> str:
     return name
 
 
-def ask_decision(model_name: str, train_data: list[list[float]]) -> tuple[str, bool]:
+def ask_decision(
+    model_name: str, train_data: list[str], power_curve: list[np.ndarray]
+) -> tuple[str, bool]:
     action = "n"
     print(f"Chosen model name: {model_name}")
-    if os.path.exists(pm.MODEL_FOLDER + "/" + model_name + "/model.h5"):
+    if os.path.exists(pm.MODEL_FOLDER + "/" + model_name + "/model.keras"):
         new_model = False
         print("Model found. What would you like to do? [r]etrain / [c]ontinue / [e]xit")
         while True:
@@ -84,7 +87,7 @@ def ask_decision(model_name: str, train_data: list[list[float]]) -> tuple[str, b
                 case "s":
                     from hp import search_params
 
-                    search_params.search_hp(train_data)
+                    search_params.search_hp(train_data, power_curve)
                     exit(0)
                 case "e":
                     print("Exiting...")
@@ -157,14 +160,14 @@ def main():
     os.makedirs(pm.CACHE_FOLDER, exist_ok=True)
 
     train_data, test_data = fetch_datasets(args.machine, banlist_file=pm.BANLIST_FILE)
-    power_curve = fetch_power_curve(args.curve)
+    power_curve: list[np.ndarray] = fetch_power_curve(args.curve)
 
     models = sorted([i.split(".")[0] for i in os.listdir(pm.MODEL_FOLDER)])
 
     if model_name is None:
         model_name = ask_model_name(models)
     if action is None:
-        action, new_model = ask_decision(model_name, train_data)
+        action, new_model = ask_decision(model_name, train_data, power_curve)
     else:
         if model_name in models:
             new_model = False
@@ -175,12 +178,12 @@ def main():
         raise EnvironmentError("Something went wrong. Decision is not t or n.")
 
     log.info(f"Model name: {model_name}; Retrain: {action}; New model: {new_model}")
-    pm.MODEL_FOLDER = os.path.join(pm.MODEL_FOLDER, model_name)
+    local_model_folder = os.path.join(pm.MODEL_FOLDER, model_name)
     os.makedirs(pm.MODEL_FOLDER, exist_ok=True)
 
     # Load model eventually
     if not new_model:
-        model = tf.keras.models.load_model(pm.MODEL_FOLDER + "/model.h5")
+        model = tf.keras.models.load_model(local_model_folder + "/model.keras")
     else:
         model = modelmd.new_model()
 
@@ -227,9 +230,9 @@ def main():
                 mode="min",
                 min_lr=1e-6,
             ),
-            tf.keras.callbacks.BackupAndRestore(pm.MODEL_FOLDER + "/backup"),
+            tf.keras.callbacks.BackupAndRestore(local_model_folder + "/backup"),
             tf.keras.callbacks.ModelCheckpoint(
-                pm.MODEL_FOLDER + "/model.h5",
+                local_model_folder + "/model.keras",
                 save_best_only=True,
                 save_weights_only=False,
                 monitor="val_loss",
@@ -248,13 +251,19 @@ def main():
             callbacks=cb,
         )
 
-        tf.keras.models.save_model(model, pm.MODEL_FOLDER + "/last_model.h5")
+        tf.keras.models.save_model(model, local_model_folder + "/last_model.keras")
+
+        # Save the curve information on disk
+        cpu_pc = power_curve[0]
+        mem_pc = power_curve[1]
+        np.savetxt(local_model_folder + "/power_curve_cpu.csv", cpu_pc, delimiter=",")
+        np.savetxt(local_model_folder + "/power_curve_mem.csv", mem_pc, delimiter=",")
 
         log.info("Saved model to disk")
         plot_history(history)
 
         # restore best model
-        model = tf.keras.models.load_model(pm.MODEL_FOLDER + "/model.h5")
+        model = tf.keras.models.load_model(local_model_folder + "/model.keras")
 
     # Predict
     results = modelmd.predict(model, test_data, power_curve)

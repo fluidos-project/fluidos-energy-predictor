@@ -10,7 +10,7 @@ from src.support import dt
 from src.support.log import tqdm_wrapper
 
 
-def fetch_power_curve(file: str) -> list[np.ndarray]:
+def fetch_power_curve(file: str) -> list[np.ndarray] | None:
     spec_folder = pm.SPEC_FOLDER
 
     if os.path.exists(f"{spec_folder}/.DS_Store"):
@@ -37,7 +37,7 @@ def fetch_power_curve(file: str) -> list[np.ndarray]:
             mem_data = [0, 0.1, 0.2, 0.4, 0.8, 1.6, 2.4, 3.2, 4.8, 9.6, 18.4]
             mem_data = np.array(mem_data)
 
-            if "memory" in data:
+            if "memory" in data and data["memory"] is not None:
                 installed_memory = data["memory"]
             else:
                 log.warning(
@@ -56,7 +56,9 @@ def fetch_power_curve(file: str) -> list[np.ndarray]:
 
             log.info(f"CPU energy consumption: {[round(i, 0) for i in cpu_data]}")
             log.info(f"Memory energy consumption: {[round(i, 0) for i in mem_data]}")
-            return [cpu_data, mem_data]
+            cpu_data_out: np.ndarray = np.array(cpu_data)
+            mem_data_out: np.ndarray = np.array(mem_data)
+            return [cpu_data_out, mem_data_out]
     else:
         raise FileNotFoundError(f"File {file}.json not found in {spec_folder}")
 
@@ -85,7 +87,7 @@ def fetch_datasets(
     ]
     if len(available_folders) == 0:
         raise EnvironmentError(
-            f"No folders found in {gcd_folder}. Please run obtain some datasets first."
+            f"No folders found in {gcd_folder}. Please obtain some datasets first."
         )
 
     if folder is None or folder == "":
@@ -238,14 +240,13 @@ def split_sequence(
     # y = [steps_out, 1]
     # where steps_out is calculated using get_power_from_sequence, and requires future_len samples
     # to be computed
-
     seq_len = len(sequence) - future_len - past_len + 1
     try:
         xx, y = np.ndarray(shape=(seq_len, past_len, pm.N_FEATURES)), np.ndarray(
             shape=(seq_len, steps_out)
         )
-    except ValueError as e:
-        log.warning(f"Error while splitting sequence (might be too short?): {e}")
+    except ValueError:
+        log.exception(f"Error while splitting sequence (might be too short?)")
         return None, None
 
     simple_filename = filename.split("/")[-1].replace(".csv", "")
@@ -276,6 +277,8 @@ def split_sequence(
             seq_y = get_predicted_power(
                 sequence[end_ix : end_ix + future_len], power_curve
             )
+
+            seq_x = seq_x.reshape((past_len, pm.N_FEATURES))
 
             xx[i] = seq_x
             y[i] = seq_y
@@ -319,5 +322,32 @@ def obtain_vectors(
         power_curve=power_curve,
     )
     # log.debug("Working with", xx.shape, " ", y.shape, "samples")
+
+    return xx, y
+
+
+def obtain_vectors_inmemory(
+    cpu_data: np.ndarray,
+    mem_data: np.ndarray,
+    power_curve: list[np.ndarray],
+) -> tuple[np.ndarray, np.ndarray]:
+
+    dataset = []
+    for series in range(len(cpu_data)):
+        dataset.append([cpu_data[series], mem_data[series]])
+    dataset = np.array(dataset)
+    if len(dataset.shape) == 1:
+        dataset = dataset.reshape(-1, 1)
+
+    future_len = pm.STEPS_IN // dt.WEEK_IN_DAYS
+
+    xx, y = split_sequence(
+        sequence=dataset,
+        past_len=pm.STEPS_IN,
+        future_len=future_len,
+        steps_out=pm.STEPS_OUT,
+        filename="inmemory_" + str(random.randint(0, 100000)),
+        power_curve=power_curve,
+    )
 
     return xx, y

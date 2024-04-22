@@ -238,7 +238,7 @@ power curves from the `spec2008` dataset is not supported.
 
 ## License
 
-This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache 2.0 License - see the [LICENCE](LICENCE) file for details.
 
 ## Acknowledgments
 
