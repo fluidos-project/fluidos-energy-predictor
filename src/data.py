@@ -37,7 +37,7 @@ def fetch_power_curve(file: str) -> list[np.ndarray]:
             mem_data = [0, 0.1, 0.2, 0.4, 0.8, 1.6, 2.4, 3.2, 4.8, 9.6, 18.4]
             mem_data = np.array(mem_data)
 
-            if "memory" in data:
+            if "memory" in data and data["memory"] is not None:
                 installed_memory = data["memory"]
             else:
                 log.warning(
