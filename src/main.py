@@ -252,9 +252,7 @@ def main():
 
         # Save the curve information on disk
         with open(local_model_folder + "/power_curve.json", "w") as f:
-            os.system(
-                "cp " + args.curve + " " + local_model_folder + "/power_curve.json"
-            )
+            os.system(f"cp {power_curve} {local_model_folder}/power_curve.json")
 
         log.info("Saved model to disk")
         plot_history(history)
