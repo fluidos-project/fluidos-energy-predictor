@@ -9,9 +9,7 @@ from prometheus_api_client.utils import parse_datetime
 from flask import Flask
 from main import ask_model_name
 
-CPU_QUERY = (
-    'cpu=100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[15s])) * 100)'
-)
+CPU_QUERY = 'cpu=100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[15s])) * 100)'
 MEM_QUERY = "avg by(instance) (100 * (1 - node_memory_MemAvailable_bytes/node_memory_MemTotal_bytes))"
 
 
@@ -23,13 +21,6 @@ def main():
         type=str,
         default=None,
         help="Model name (if unspecified, will be prompted)",
-    )
-    parser.add_argument(
-        "--curve",
-        "-c",
-        type=str,
-        default=None,
-        help="Power curve file (must be the same as the one used for training)",
     )
     parser.add_argument(
         "--telemetry",
@@ -58,15 +49,18 @@ def main():
         model_name = ask_model_name(models)
         if model_name is None:
             raise ValueError("No model selected")
-        if not os.path.exists(os.path.join(pm.MODEL_FOLDER, model_name + ".h5")):
+        if not os.path.exists(os.path.join(pm.MODEL_FOLDER, model_name + ".keras")):
             raise FileNotFoundError(
                 f"Model {model_name} not found, please train it first"
             )
 
-    if args.curve is not None:
-        curve_file = args.curve
-    else:
-        raise ValueError("Power curve file must be specified")
+    local_model_folder = os.path.join(pm.MODEL_FOLDER, model_name)
+
+    # Check if power_curve.json exists
+    if not os.path.exists(local_model_folder + "/power_curve.json"):
+        raise FileNotFoundError(
+            "power_curve.json not found. Please train the model first."
+        )
 
     if args.telemetry is None:
         raise ValueError(
