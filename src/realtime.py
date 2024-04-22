@@ -5,6 +5,8 @@ import logging as log
 import os
 import re
 
+from flask import Flask
+import numpy as np
 import tensorflow as tf
 from prometheus_api_client import PrometheusConnect
 
@@ -94,12 +96,13 @@ def main():
             )
 
     local_model_folder = os.path.join(pm.MODEL_FOLDER, model_name)
+    required_steps = pm.STEPS_IN
 
     # Check if power_curve.json exists
-    if not os.path.exists(local_model_folder + "/power_curve.json"):
-        raise FileNotFoundError(
-            "power_curve.json not found. Please train the model first."
-        )
+    if not os.path.exists(
+        local_model_folder + "/power_curve_cpu.csv"
+    ) or not os.path.exists(local_model_folder + "/power_curve_mem.csv"):
+        raise FileNotFoundError("Power curve not found. Please train the model first.")
 
     # [{'metric': {'instance': '10.244.0.5:9100'}, 'values': [[1713776805, '64.11895885416666'],
     # [1713777705, '21.543016759776506'], [1713778605, '22.515642458100558'], [1713779505, '18.079050279329593'],
@@ -201,13 +204,13 @@ def main():
 
         if len(cpu_data[i]["values"]) == 0:
             raise ValueError("No data found for instance " + instance)
-        if len(cpu_data[i]["values"]) != pm.STEPS_IN:
+        if len(cpu_data[i]["values"]) != required_steps:
             log.error(
-                f"Data length for instance {instance} is wrong. Required {pm.STEPS_IN} steps, got {len(cpu_data[i]['values'])}"
+                f"Data length for instance {instance} is wrong. Required {required_steps} steps, got {len(cpu_data[i]['values'])}"
             )
-            if len(cpu_data[i]["values"]) < pm.STEPS_IN:
+            if len(cpu_data[i]["values"]) < required_steps:
                 raise ValueError(
-                    f"Data length for instance {instance} is too short. Required {pm.STEPS_IN} steps, got {len(cpu_data[i]['values'])}"
+                    f"Data length for instance {instance} is too short. Required {required_steps} steps, got {len(cpu_data[i]['values'])}"
                 )
             else:
                 truncation = False
@@ -224,8 +227,8 @@ def main():
                     truncation = True
 
                 if truncation:
-                    cpu_data[i]["values"] = cpu_data[i]["values"][: pm.STEPS_IN]
-                    mem_data[i]["values"] = mem_data[i]["values"][: pm.STEPS_IN]
+                    cpu_data[i]["values"] = cpu_data[i]["values"][:required_steps]
+                    mem_data[i]["values"] = mem_data[i]["values"][:required_steps]
                 else:
                     log.error("We cannot proceed. Adios!")
                     exit(1)
@@ -239,18 +242,38 @@ def main():
                 "mem": float(mem_data[i]["values"][j][1]),
             }
 
+    metrics = {}
     for node in ts:
         log.info(f"Node {node}")
         timedata = ts[node]
 
         model = tf.keras.models.load_model(local_model_folder + "/model.keras")
 
+        power_curve_cpu = np.loadtxt(
+            local_model_folder + "/power_curve_cpu.csv", delimiter=","
+        )
+        power_curve_mem = np.loadtxt(
+            local_model_folder + "/power_curve_mem.csv", delimiter=","
+        )
+        power_curve = [power_curve_cpu, power_curve_mem]
+
         results = modelmd.predict_inmemory(
             model,
             timedata,
-            json.load(open(local_model_folder + "/power_curve.json")),
+            power_curve,
         )
-        log.info(f"Predictions: {results.yhat}")
+        metrics[node] = results.tolist()
+
+    # Finally expose the data with a Flask server
+    # We will expose the data in the following format:
+    # {"node1": 10, "node2": 20, "node3": 30}
+    app = Flask(__name__)
+
+    @app.route("/data")
+    def data():
+        return metrics
+
+    app.run(port=args.output_port)
 
 
 if __name__ == "__main__":

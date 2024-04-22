@@ -125,17 +125,9 @@ def predict_inmemory(
     cpu_data = np.array(cpu_data).reshape(-1, 1)
     mem_data = np.array(mem_data).reshape(-1, 1)
 
-    xx2, y2 = obtain_vectors_inmemory(cpu_data, mem_data, power_curve)
-    if xx2 is None or y2 is None:
-        raise ValueError("No data found")
-
-    x_input = xx2[0].reshape((1, pm.STEPS_IN, pm.N_FEATURES))
-    y2_input = y2[0]
+    x_input = np.concatenate((cpu_data, mem_data), axis=1)
+    x_input = x_input.reshape((1, pm.STEPS_IN, pm.N_FEATURES))
 
     yhat = model.predict(x_input, verbose=0)
 
-    log.info("Prediction finished")
-    log.info(f"Expected power consumption: {y2_input}")
-    log.info(f"Predicted power consumption: {yhat}")
-
-    return {"y2": y2_input, "yhat": yhat}
+    return yhat

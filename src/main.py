@@ -254,15 +254,10 @@ def main():
         tf.keras.models.save_model(model, local_model_folder + "/last_model.keras")
 
         # Save the curve information on disk
-        with open(local_model_folder + "/power_curve.json", "w") as f:
-            cpu_pc = power_curve[0]
-            mem_pc = power_curve[1]
-            np.savetxt(
-                local_model_folder + "/power_curve_cpu.csv", cpu_pc, delimiter=","
-            )
-            np.savetxt(
-                local_model_folder + "/power_curve_mem.csv", mem_pc, delimiter=","
-            )
+        cpu_pc = power_curve[0]
+        mem_pc = power_curve[1]
+        np.savetxt(local_model_folder + "/power_curve_cpu.csv", cpu_pc, delimiter=",")
+        np.savetxt(local_model_folder + "/power_curve_mem.csv", mem_pc, delimiter=",")
 
         log.info("Saved model to disk")
         plot_history(history)

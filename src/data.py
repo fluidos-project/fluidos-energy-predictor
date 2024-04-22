@@ -240,14 +240,13 @@ def split_sequence(
     # y = [steps_out, 1]
     # where steps_out is calculated using get_power_from_sequence, and requires future_len samples
     # to be computed
-
     seq_len = len(sequence) - future_len - past_len + 1
     try:
         xx, y = np.ndarray(shape=(seq_len, past_len, pm.N_FEATURES)), np.ndarray(
             shape=(seq_len, steps_out)
         )
-    except ValueError as e:
-        log.warning(f"Error while splitting sequence (might be too short?): {e}")
+    except ValueError:
+        log.exception(f"Error while splitting sequence (might be too short?)")
         return None, None
 
     simple_filename = filename.split("/")[-1].replace(".csv", "")
@@ -278,6 +277,8 @@ def split_sequence(
             seq_y = get_predicted_power(
                 sequence[end_ix : end_ix + future_len], power_curve
             )
+
+            seq_x = seq_x.reshape((past_len, pm.N_FEATURES))
 
             xx[i] = seq_x
             y[i] = seq_y
@@ -330,6 +331,7 @@ def obtain_vectors_inmemory(
     mem_data: np.ndarray,
     power_curve: list[np.ndarray],
 ) -> tuple[np.ndarray, np.ndarray]:
+
     dataset = []
     for series in range(len(cpu_data)):
         dataset.append([cpu_data[series], mem_data[series]])
@@ -338,6 +340,7 @@ def obtain_vectors_inmemory(
         dataset = dataset.reshape(-1, 1)
 
     future_len = pm.STEPS_IN // dt.WEEK_IN_DAYS
+
     xx, y = split_sequence(
         sequence=dataset,
         past_len=pm.STEPS_IN,
