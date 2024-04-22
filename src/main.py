@@ -229,7 +229,7 @@ def main():
             ),
             tf.keras.callbacks.BackupAndRestore(pm.MODEL_FOLDER + "/backup"),
             tf.keras.callbacks.ModelCheckpoint(
-                pm.MODEL_FOLDER + "/model.h5",
+                pm.MODEL_FOLDER + "/model.keras",
                 save_best_only=True,
                 save_weights_only=False,
                 monitor="val_loss",
