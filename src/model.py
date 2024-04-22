@@ -6,7 +6,7 @@ import tensorflow as tf
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 
 from src import parameters as pm
-from src.data import obtain_vectors
+from src.data import obtain_vectors, obtain_vectors_inmemory
 from src.plot import save_prediction, plot_prediction
 
 
@@ -107,3 +107,27 @@ def predict(
         "y2": y2_history.tolist(),
         "yhat": yhat_history.tolist(),
     }
+
+
+# noinspection PyUnresolvedReferences
+def predict_inmemory(
+    model: tf.keras.Sequential,
+    merged_data: dict[int, dict[str, float]],
+    power_curve: list[np.ndarray],
+) -> dict:
+
+    # merged data be like:
+    # {1: {'cpu': 0.1, 'mem': 0.2}, 2: {'cpu': 0.4, 'mem': 0.5}}
+    # obtain_vectors_inmemory()
+    cpu_data = [merged_data[timestamp]["cpu"] for timestamp in merged_data]
+    mem_data = [merged_data[timestamp]["mem"] for timestamp in merged_data]
+
+    cpu_data = np.array(cpu_data).reshape(-1, 1)
+    mem_data = np.array(mem_data).reshape(-1, 1)
+
+    x_input = np.concatenate((cpu_data, mem_data), axis=1)
+    x_input = x_input.reshape((1, pm.STEPS_IN, pm.N_FEATURES))
+
+    yhat = model.predict(x_input, verbose=0)
+
+    return yhat

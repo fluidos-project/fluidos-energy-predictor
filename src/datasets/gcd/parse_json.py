@@ -32,11 +32,11 @@ if __name__ == "__main__":
 
     os.makedirs(folder_target, exist_ok=True)
 
-    labels = ['start_time', 'end_time', 'machine_id', 'cpus', 'memory']
+    labels = ["start_time", "end_time", "machine_id", "cpus", "memory"]
 
     newdata = np.array([])
     newdata = newdata.reshape(0, len(labels))
-    with open(f'{folder_start}/{name_start}') as f:
+    with open(f"{folder_start}/{name_start}") as f:
         data = json.load(f)
         if len(data) == 0:
             print("No data in file, exiting...")
@@ -47,41 +47,42 @@ if __name__ == "__main__":
         i = 0
         total_items = len(data)
 
-        data = sorted(
-            data,
-            key=lambda q: int(q['start_time'])
-        )
+        data = sorted(data, key=lambda q: int(q["start_time"]))
 
         print(f"Reading data from {folder_start}/{name_start}")
 
         for item in tqdm_wrapper(data):
-            start = int(item['start_time'])
-            end = int(item['end_time'])
+            start = int(item["start_time"])
+            end = int(item["end_time"])
 
             if len(newdata) > 1 and (
-                    start == end  # same time
-                    or end < start  # end before start
-                    or start == newdata[-1][0]  # same start time as previous
-                    or end == newdata[-1][1]  # same end time as previous
+                start == end  # same time
+                or end < start  # end before start
+                or start == newdata[-1][0]  # same start time as previous
+                or end == newdata[-1][1]  # same end time as previous
             ):
                 continue
 
-            mid = int(item['machine_id'])
+            mid = int(item["machine_id"])
             if "random_sample_usage" in item:
-                cpu = float(item['random_sample_usage']['cpus'])
+                cpu = float(item["random_sample_usage"]["cpus"])
             else:
-                cpu = float(item['cpus'])
+                cpu = float(item["cpus"])
 
             if "average_usage" in item:
-                mem = float(item['average_usage']['memory'])
+                mem = float(item["average_usage"]["memory"])
             else:
-                mem = float(item['memory'])
+                mem = float(item["memory"])
             # make newdata an array of arrays
-            newdata = np.append(newdata, np.array([[start, end, mid, cpu, mem]]), axis=0)
+            newdata = np.append(
+                newdata, np.array([[start, end, mid, cpu, mem]]), axis=0
+            )
 
     # print(newdata)
     print("Length of newdata:", len(newdata))
-    print(f"Each data point is 30 sec. Total time: {len(newdata) / 2 / dt.WEEK_IN_MINUTES} weeks")
+    print(
+        f"Each data point is 30 sec. Total time: {len(newdata) / 2 / dt.WEEK_IN_MINUTES} weeks"
+    )
 
     # Merge data points so that it becomes one every MINUTES minutes
     newnewdata = np.array([])
@@ -96,11 +97,15 @@ if __name__ == "__main__":
             mem += mem_
         cpu /= granularity * 2
         mem /= granularity * 2
-        newnewdata = np.append(newnewdata, np.array([[start, end, mid, cpu, mem]]), axis=0)
+        newnewdata = np.append(
+            newnewdata, np.array([[start, end, mid, cpu, mem]]), axis=0
+        )
     newdata = newnewdata
 
     print("Length of newdata:", len(newdata))
-    print(f"Each data point is {granularity} min. Total time: {len(newdata) * granularity / dt.WEEK_IN_MINUTES} weeks")
+    print(
+        f"Each data point is {granularity} min. Total time: {len(newdata) * granularity / dt.WEEK_IN_MINUTES} weeks"
+    )
 
     print("Computing moving average...")
 
@@ -109,14 +114,14 @@ if __name__ == "__main__":
     for _ in range(1):
         for i in tqdm_wrapper(range(0, len(newdata))):
             if i < wsize:
-                newdata[i][3] = np.mean(newdata[:i + wsize, 3])
-                newdata[i][4] = np.mean(newdata[:i + wsize, 4])
+                newdata[i][3] = np.mean(newdata[: i + wsize, 3])
+                newdata[i][4] = np.mean(newdata[: i + wsize, 4])
             elif i >= len(newdata) - wsize:
-                newdata[i][3] = np.mean(newdata[i - wsize:, 3])
-                newdata[i][4] = np.mean(newdata[i - wsize:, 4])
+                newdata[i][3] = np.mean(newdata[i - wsize :, 3])
+                newdata[i][4] = np.mean(newdata[i - wsize :, 4])
             else:
-                newdata[i][3] = np.mean(newdata[i - wsize:i + wsize, 3])
-                newdata[i][4] = np.mean(newdata[i - wsize:i + wsize, 4])
+                newdata[i][3] = np.mean(newdata[i - wsize : i + wsize, 3])
+                newdata[i][4] = np.mean(newdata[i - wsize : i + wsize, 4])
 
     # Scale cpu and mem between 0 and 1
     scaler = MinMaxScaler()
@@ -126,7 +131,7 @@ if __name__ == "__main__":
     print("Writing data to ", folder_target, name_target)
 
     # split into
-    with open(f'{folder_target}/{name_target}_all.csv', 'w') as f:
+    with open(f"{folder_target}/{name_target}_all.csv", "w") as f:
         f.write("timestamp,empty1,empty2,machine_id,cpu,mem,empty3\n")
         i = 1
         for item in newdata:
@@ -140,7 +145,7 @@ if __name__ == "__main__":
     for i in tqdm_wrapper(range(0, len(newdata), interval)):
         target = i + days * interval
         print(f"Splitting from t={i} to t={target}")
-        with open(f'{folder_target}/{name_target}_seq_{i}-to-{target}.csv', 'w') as f:
+        with open(f"{folder_target}/{name_target}_seq_{i}-to-{target}.csv", "w") as f:
             f.write("timestamp,empty1,empty2,machine_id,cpu,mem,empty3\n")
             j = 1
             for item in newdata[i:target]:
@@ -154,7 +159,7 @@ if __name__ == "__main__":
     # plot a week at time
     interval = dt.WEEK_IN_MINUTES // granularity
     for i in tqdm_wrapper(range(0, len(newdata), interval)):
-        dd = newdata[i:i + interval]
+        dd = newdata[i : i + interval]
         x = [item[0] for item in dd]
         y = [item[4] for item in dd]
         plt.figure(figsize=(30, 10))

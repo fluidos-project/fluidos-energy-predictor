@@ -25,9 +25,15 @@ def main():
     if redownload:
         for page in tqdm_wrapper(pages):
             try:
-                fn = re.sub(r"[^a-zA-Z0-9]", "-", "-".join([str(i) for i in page["cpu"].values()])) \
-                    .replace("--", "-") \
+                fn = (
+                    re.sub(
+                        r"[^a-zA-Z0-9]",
+                        "-",
+                        "-".join([str(i) for i in page["cpu"].values()]),
+                    )
+                    .replace("--", "-")
                     .lower()
+                )
                 if fn[-1] == "-":
                     fn = fn[:-1]
 
@@ -37,7 +43,9 @@ def main():
 
                 data = parse_page(page["link"])
                 page["data"] = pd.DataFrame(data).to_dict(orient="records")
-                open(f"data/spec2008/{fn}/{content}.json", "w").write(json.dumps(page, indent=4))
+                open(f"data/spec2008/{fn}/{content}.json", "w").write(
+                    json.dumps(page, indent=4)
+                )
             except Exception as e:
                 failed.append(page)
                 print("Error parsing page: " + page["pc_model"])
@@ -76,19 +84,22 @@ def get_pages(url):
         # save info about the model and then the link to the html file
         cols = row.findAll("td")
         if len(cols) > 0:
-            ret.append({
-                "pc_vendor": cols[0].text,
-                "pc_model": cols[1].text.split("\n")[0],
-                "link": "https://www.spec.org/power_ssj2008/results/" + cols[1].find("a")["href"],
-                "cpu": {
-                    "model": cols[4].text,
-                    "mhz": cols[5].text,
-                    "chips": cols[6].text,
-                    "cores": cols[7].text,
-                    "threads": cols[8].text
-                },
-                "memory": cols[9].text
-            })
+            ret.append(
+                {
+                    "pc_vendor": cols[0].text,
+                    "pc_model": cols[1].text.split("\n")[0],
+                    "link": "https://www.spec.org/power_ssj2008/results/"
+                    + cols[1].find("a")["href"],
+                    "cpu": {
+                        "model": cols[4].text,
+                        "mhz": cols[5].text,
+                        "chips": cols[6].text,
+                        "cores": cols[7].text,
+                        "threads": cols[8].text,
+                    },
+                    "memory": cols[9].text,
+                }
+            )
             try:
                 ret[-1]["cpu"]["mhz"] = int(ret[-1]["cpu"]["mhz"])
             except ValueError:
@@ -149,19 +160,27 @@ def parse_page(url):
     df = pd.DataFrame(body_rows, columns=labels)
 
     # transform % to float
-    df["Performance/Target Load"] = df["Performance/Target Load"].apply(lambda x: float(x[:-1]) / 100)
-    df["Performance/Actual Load"] = df["Performance/Actual Load"].apply(lambda x: float(x[:-1]) / 100)
+    df["Performance/Target Load"] = df["Performance/Target Load"].apply(
+        lambda x: float(x[:-1]) / 100
+    )
+    df["Performance/Actual Load"] = df["Performance/Actual Load"].apply(
+        lambda x: float(x[:-1]) / 100
+    )
 
     # transform ops to int
-    df["Performance/ssj_ops"] = df["Performance/ssj_ops"].apply(lambda x: int(x.replace(",", "")))
+    df["Performance/ssj_ops"] = df["Performance/ssj_ops"].apply(
+        lambda x: int(x.replace(",", ""))
+    )
 
     # transform power to float
     df["Power"] = df["Power"].apply(lambda x: float(x.replace(",", "")))
 
     # transform ratio to float
-    df["Performance to Power Ratio"] = df["Performance to Power Ratio"].apply(lambda x: float(x.replace(",", "")))
+    df["Performance to Power Ratio"] = df["Performance to Power Ratio"].apply(
+        lambda x: float(x.replace(",", ""))
+    )
 
-    pd.set_option('display.max_columns', None)
+    pd.set_option("display.max_columns", None)
 
     return df
 
@@ -181,35 +200,80 @@ def merge(folder):
     # Verify that all data is the same, convert to lower case
     for key in data[0]["cpu"].keys():
         if type(data[0]["cpu"][key]) == str:
-            target = re.sub(r"[^a-zA-Z0-9]", "-", data[0]["cpu"][key]).replace("--", "-").lower()
-            check = [re.sub(r"[^a-zA-Z0-9]", "-", data[i]["cpu"][key]).replace("--", "-").lower() == target
-                     for i in range(len(data)) if i > 0]
+            target = (
+                re.sub(r"[^a-zA-Z0-9]", "-", data[0]["cpu"][key])
+                .replace("--", "-")
+                .lower()
+            )
+            check = [
+                re.sub(r"[^a-zA-Z0-9]", "-", data[i]["cpu"][key])
+                .replace("--", "-")
+                .lower()
+                == target
+                for i in range(len(data))
+                if i > 0
+            ]
         else:
-            check = [data[i]["cpu"][key] == data[0]["cpu"][key] for i in range(len(data)) if i > 0]
+            check = [
+                data[i]["cpu"][key] == data[0]["cpu"][key]
+                for i in range(len(data))
+                if i > 0
+            ]
 
         if not all(check):
-            raise Exception(f"CPU Data is not the same for folder {folder}: {check} for {key}")
+            raise Exception(
+                f"CPU Data is not the same for folder {folder}: {check} for {key}"
+            )
 
     res = data[0].copy()
     res["data"] = {
-        "Performance to Power Ratio": np.round([
-            np.mean([data[i]["data"][j]["Performance to Power Ratio"] for i in range(len(data))])
-            for j in range(len(data[0]["data"]))
-        ], 3).tolist(),
-        "Performance/Actual Load": np.round([
-            np.mean([data[i]["data"][j]["Performance/Actual Load"] for i in range(len(data))])
-            for j in range(len(data[0]["data"]))
-        ], 3).tolist(),
-        "Performance/Target Load": [data[0]["data"][i]["Performance/Target Load"]
-                                    for i in range(len(data[0]["data"]))],
-        "Performance/ssj_ops": np.round([
-            np.mean([data[i]["data"][j]["Performance/ssj_ops"] for i in range(len(data))])
-            for j in range(len(data[0]["data"]))
-        ], 3).tolist(),
-        "Power": np.round([
-            np.mean([data[i]["data"][j]["Power"] for i in range(len(data))])
-            for j in range(len(data[0]["data"]))
-        ], 3).tolist(),
+        "Performance to Power Ratio": np.round(
+            [
+                np.mean(
+                    [
+                        data[i]["data"][j]["Performance to Power Ratio"]
+                        for i in range(len(data))
+                    ]
+                )
+                for j in range(len(data[0]["data"]))
+            ],
+            3,
+        ).tolist(),
+        "Performance/Actual Load": np.round(
+            [
+                np.mean(
+                    [
+                        data[i]["data"][j]["Performance/Actual Load"]
+                        for i in range(len(data))
+                    ]
+                )
+                for j in range(len(data[0]["data"]))
+            ],
+            3,
+        ).tolist(),
+        "Performance/Target Load": [
+            data[0]["data"][i]["Performance/Target Load"]
+            for i in range(len(data[0]["data"]))
+        ],
+        "Performance/ssj_ops": np.round(
+            [
+                np.mean(
+                    [
+                        data[i]["data"][j]["Performance/ssj_ops"]
+                        for i in range(len(data))
+                    ]
+                )
+                for j in range(len(data[0]["data"]))
+            ],
+            3,
+        ).tolist(),
+        "Power": np.round(
+            [
+                np.mean([data[i]["data"][j]["Power"] for i in range(len(data))])
+                for j in range(len(data[0]["data"]))
+            ],
+            3,
+        ).tolist(),
     }
 
     res["count"] = len(data)

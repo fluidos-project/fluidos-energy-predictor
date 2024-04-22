@@ -6,7 +6,7 @@ from src.model import new_model
 
 
 # noinspection PyUnresolvedReferences
-def search_hp(train_data):
+def search_hp(train_data, power_curve):
     tuner = keras_tuner.RandomSearch(
         new_model,
         objective="val_loss",
@@ -16,7 +16,7 @@ def search_hp(train_data):
 
     tuner.search_space_summary()
 
-    xx, y = obtain_vectors(train_data)
+    xx, y = obtain_vectors(train_data, power_curve)
 
     # split into train and test
     split = int(len(xx) * 0.8)
