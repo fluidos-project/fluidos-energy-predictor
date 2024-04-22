@@ -107,3 +107,34 @@ def predict(
         "y2": y2_history.tolist(),
         "yhat": yhat_history.tolist(),
     }
+
+
+def predict_inmemory(
+    model: tf.keras.Sequential,
+    merged_data: dict[int, dict[str, float]],
+    power_curve: list[np.ndarray],
+) -> dict:
+
+    # merged data be like:
+    # {1: {'cpu': 0.1, 'mem': 0.2}, 2: {'cpu': 0.4, 'mem': 0.5}}
+    # obtain_vectors_inmemory()
+    cpu_data = [merged_data[timestamp]["cpu"] for timestamp in merged_data]
+    mem_data = [merged_data[timestamp]["mem"] for timestamp in merged_data]
+
+    xx2, y2 = obtain_vectors_inmemory(cpu_data, mem_data, power_curve)
+    if xx2 is None or y2 is None:
+        raise ValueError("No data found")
+
+    x_input = xx2[0].reshape((1, pm.STEPS_IN, pm.N_FEATURES))
+    y2_input = y2[0]
+
+    yhat = model.predict(x_input, verbose=0)
+
+    log.info("Prediction finished")
+    log.info(f"Expected power consumption: {y2_input}")
+    log.info(f"Predicted power consumption: {yhat}")
+
+    return {
+        "y2": y2_input,
+        "yhat": yhat
+    }

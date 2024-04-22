@@ -321,3 +321,28 @@ def obtain_vectors(
     # log.debug("Working with", xx.shape, " ", y.shape, "samples")
 
     return xx, y
+
+
+def obtain_vectors_inmemory(
+    cpu_data: np.ndarray,
+    mem_data: np.ndarray,
+    power_curve: list[np.ndarray],
+) -> tuple[np.ndarray, np.ndarray]:
+    dataset = []
+    for series in range(len(cpu_data)):
+        dataset.append([cpu_data[series], mem_data[series]])
+    dataset = np.array(dataset)
+    if len(dataset.shape) == 1:
+        dataset = dataset.reshape(-1, 1)
+
+    future_len = pm.STEPS_IN // dt.WEEK_IN_DAYS
+    xx, y = split_sequence(
+        sequence=dataset,
+        past_len=pm.STEPS_IN,
+        future_len=future_len,
+        steps_out=pm.STEPS_OUT,
+        filename="inmemory_" + str(random.randint(0, 100000)),
+        power_curve=power_curve
+    )
+
+    return xx, y
