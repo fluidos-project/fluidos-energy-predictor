@@ -1,4 +1,5 @@
 .direnv
+.env
 
 data
 models
