@@ -22,10 +22,13 @@ def ask_model_name(models: list[str]) -> str:
             else:
                 print(f"\t{i + 1}) {model_name} (status unknown)")
         print()
-    print(f"Model name:"
-          f"\n\t- '' or 'default' for default model ({pm.DEFAULT_MODEL})"
-          f"\n\t- 'dt' for datetime"
-          f"\n\t- [name] for name" + (f"\n\t- [number] for a specific model in list" if len(models) > 0 else ""))
+    print(
+        f"Model name:"
+        f"\n\t- '' or 'default' for default model ({pm.DEFAULT_MODEL})"
+        f"\n\t- 'dt' for datetime"
+        f"\n\t- [name] for name"
+        + (f"\n\t- [number] for a specific model in list" if len(models) > 0 else "")
+    )
     while True:
         name = input("Insert model name: ")
         match name:
@@ -40,7 +43,7 @@ def ask_model_name(models: list[str]) -> str:
                     name = models[int(name) - 1]
                     break
                 except:
-                    pass
+                    break
 
     return name
 
@@ -69,7 +72,9 @@ def ask_decision(model_name: str, train_data: list[list[float]]) -> tuple[str, b
 
     else:
         new_model = True
-        print("Model not found. What would you like to do? [t]rain / [s]earch hyperparameters / [e]xit")
+        print(
+            "Model not found. What would you like to do? [t]rain / [s]earch hyperparameters / [e]xit"
+        )
         while True:
             response = input("t/s/e: ")
             match response:
@@ -78,6 +83,7 @@ def ask_decision(model_name: str, train_data: list[list[float]]) -> tuple[str, b
                     break
                 case "s":
                     from hp import search_params
+
                     search_params.search_hp(train_data)
                     exit(0)
                 case "e":
@@ -90,17 +96,44 @@ def ask_decision(model_name: str, train_data: list[list[float]]) -> tuple[str, b
     return action, new_model
 
 
+# noinspection PyUnresolvedReferences
 def main():
-    parser = argparse.ArgumentParser(description='FLUIDOS WP6 T6.3 Model POC')
-    parser.add_argument('--model', '-m', type=str, default=None, help='Model name (if unspecified, will be prompted)')
-    parser.add_argument('--curve', '-c', type=str, default=None,
-                        help='Power curve file (if unspecified, will be chosen randomly)')
-    parser.add_argument('--epochs', '-e', type=int, default=None,
-                        help='Number of epochs (if unspecified, will be prompted)')
-    parser.add_argument('--action', '-a', type=str, default=None,
-                        help='Action to perform (train, search hyperparameters, test)')
-    parser.add_argument('--machine', '-M', type=str, default=None,
-                        help='GCD machine files to use (if unspecified, will be chosen randomly)')
+    parser = argparse.ArgumentParser(description="FLUIDOS WP6 T6.3 Model POC")
+    parser.add_argument(
+        "--model",
+        "-m",
+        type=str,
+        default=None,
+        help="Model name (if unspecified, will be prompted)",
+    )
+    parser.add_argument(
+        "--curve",
+        "-c",
+        type=str,
+        default=None,
+        help="Power curve file (if unspecified, will be chosen randomly)",
+    )
+    parser.add_argument(
+        "--epochs",
+        "-e",
+        type=int,
+        default=None,
+        help="Number of epochs (if unspecified, will be prompted)",
+    )
+    parser.add_argument(
+        "--action",
+        "-a",
+        type=str,
+        default=None,
+        help="Action to perform (train, search hyperparameters, test)",
+    )
+    parser.add_argument(
+        "--machine",
+        "-M",
+        type=str,
+        default=None,
+        help="GCD machine files to use (if unspecified, will be chosen randomly)",
+    )
     args = parser.parse_args()
 
     if args.model is not None:
@@ -162,13 +195,17 @@ def main():
                 epochs = float(epochs)
 
                 if int(epochs) != epochs:
-                    print("Ah yes, training for a non-integer amount of epochs. That's a good idea.")
+                    print(
+                        "Ah yes, training for a non-integer amount of epochs. That's a good idea."
+                    )
                     continue
 
                 epochs = int(epochs)
 
                 if epochs <= 0:
-                    print("Ah yes, training for 0 epochs. That's a good idea. Congratulations, you broke math.")
+                    print(
+                        "Ah yes, training for 0 epochs. That's a good idea. Congratulations, you broke math."
+                    )
                     continue
 
                 break
@@ -180,15 +217,36 @@ def main():
 
         log.info(f"Training data shape: {xx.shape} -> {y.shape}")
 
-        cb = [tf.keras.callbacks.EarlyStopping(monitor='val_loss', patience=pm.PATIENCE),
-              tf.keras.callbacks.ReduceLROnPlateau(monitor="val_loss", factor=0.5, patience=200, verbose=1, mode='min',
-                                                   min_lr=1e-6),
-              tf.keras.callbacks.BackupAndRestore(pm.MODEL_FOLDER + "/backup"),
-              tf.keras.callbacks.ModelCheckpoint(pm.MODEL_FOLDER + "/model.h5", save_best_only=True,
-                                                 save_weights_only=False, monitor='val_loss', mode='min')]
+        cb = [
+            tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=pm.PATIENCE),
+            tf.keras.callbacks.ReduceLROnPlateau(
+                monitor="val_loss",
+                factor=0.5,
+                patience=200,
+                verbose=1,
+                mode="min",
+                min_lr=1e-6,
+            ),
+            tf.keras.callbacks.BackupAndRestore(pm.MODEL_FOLDER + "/backup"),
+            tf.keras.callbacks.ModelCheckpoint(
+                pm.MODEL_FOLDER + "/model.h5",
+                save_best_only=True,
+                save_weights_only=False,
+                monitor="val_loss",
+                mode="min",
+            ),
+        ]
 
         log.info(f"Training model for {epochs} epochs")
-        history = model.fit(xx, y, epochs=epochs, verbose=1, validation_split=pm.SPLIT, shuffle=True, callbacks=cb)
+        history = model.fit(
+            xx,
+            y,
+            epochs=epochs,
+            verbose=1,
+            validation_split=pm.SPLIT,
+            shuffle=True,
+            callbacks=cb,
+        )
 
         tf.keras.models.save_model(model, pm.MODEL_FOLDER + "/last_model.h5")
 
@@ -203,5 +261,5 @@ def main():
     log.info(f"Predictions: {results}")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

@@ -26,7 +26,7 @@ def plot_prediction(yhat, y2, columns, start=0, end=None):
     prediction = yhat[start:end, :].flatten()
     truth = y2[start:end, :].flatten()
 
-    plt.figure(figsize=(20, 10))
+    plt.figure(figsize=(15, 8))
     # First, plot what was before
     plt.plot(prediction, label='prediction', linestyle='-.', alpha=.7, color='r')
     plt.plot(truth, label='actual', linestyle='-', alpha=.5, color='b')
@@ -34,6 +34,9 @@ def plot_prediction(yhat, y2, columns, start=0, end=None):
         for j in columns:
             plt.axvline(x=j, linestyle='--', alpha=.3, color='g')
     plt.legend()
+    plt.xlabel("Predicted day")
+    plt.ylabel("Power (kWh)")
+    plt.title("Prediction vs actual usage of the following day")
     plt.savefig(pm.LOG_FOLDER + f"/prediction-{start}-{end}.png")
     plt.close()
 
@@ -62,13 +65,13 @@ def plot_history(history):
     for key in history.history.keys():
         if "val" not in key:
             continue
-        plt.figure(figsize=(20, 10))
+        plt.figure(figsize=(15, 8))
         plt.plot(history.history[key.replace("val_", "")])
         plt.plot(history.history[key])
         plt.yscale('log')
-        plt.title('model ' + key)
-        plt.ylabel(key)
-        plt.xlabel('epoch')
+        plt.title('Loss and validation loss over epochs')
+        plt.ylabel("Loss")
+        plt.xlabel('Epoch')
         plt.legend(['train', 'validate'], loc='upper left')
         plt.savefig(pm.LOG_FOLDER + "/" + key.replace("val_", "") + ".png")
         plt.close()

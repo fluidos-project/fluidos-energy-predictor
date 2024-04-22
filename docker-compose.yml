@@ -1,0 +1,14 @@
+name: fluidos-energy-predictor
+services:
+    fluidos-energy-predictor:
+        stdin_open: true
+        tty: true
+        container_name: predictor
+        volumes:
+            - ${DATA_TRAINING_FOLDER}:/app/data
+            - ${MODELS_TRAINING_FOLDER}:/app/models
+            - ${OUT_TRAINING_FOLDER}:/app/out
+        environment:
+            - TZ=Europe/Rome
+        restart: unless-stopped
+        image: ghcr.io/risingfbk/fluidos-energy-predictor:github

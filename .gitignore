@@ -1,3 +1,6 @@
+.direnv
+.env
+
 data
 models
 out
