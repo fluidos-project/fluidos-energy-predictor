@@ -236,6 +236,34 @@ using Docker). The file must contain a list of file names, one per line. The pro
 listed in the banlist. File paths must be specified from the root of the `data/gcd` folder. At the moment, skipping
 power curves from the `spec2008` dataset is not supported.
 
+## Real-time predictions
+
+The program can be used to make real-time predictions. To do so, run `python3 src/realtime.py`. The program
+will connect to the FLUIDOS Telemetry service and use the data to make predictions. The program will then start a Flask
+server that will serve the predictions as a JSON object.
+
+### Arguments
+
+- `--model, -m`: Specifies the model name. If unspecified, the user will be prompted to enter it. Default is `None`.
+- `--telemetry, -t`: Specifies the FLUIDOS Telemetry endpoint (i.e. `http://localhost:46405/metrics`).
+  This argument is mutually exclusive with `--debug`.
+- `--debug, -d`: Enables debug mode, which uses CPU and memory data from files.
+  This argument is mutually exclusive with `--telemetry`.
+  - `--cpufile`: Specifies the CPU data file. This argument is required in debug mode. Default is `None`.
+  - `--memfile`: Specifies the memory data file. This argument is required in debug mode. Default is `None`.
+- `--output_port, -p`: Specifies the output port for the Flask server. Default is `5000`.
+- `--truncate`: If this flag is set, the data will be truncated to the required length if it is longer.
+  If the data is shorter, keys will be aggressively deleted. This flag is used to automate the process of data
+  parsing in the case of misaligned data.
+
+### Predictions
+
+The program works similarly to the training program. It will automatically load the model from the `models` folder,
+but this time, it will refuse to run if the model is not found. The program will then connect to the FLUIDOS Telemetry
+service (or, if in debug mode, expect CPU and memory data files **in Prometheus format**), and use the data to make
+predictions. The program will use the same power curve as the training program, which is expected to be found in
+the model folder.
+
 ## License
 
 This project is licensed under the Apache 2.0 License - see the [LICENCE](LICENCE) file for details.
