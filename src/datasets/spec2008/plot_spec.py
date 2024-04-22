@@ -48,8 +48,15 @@ def main():
             df.sort_values(by=["Power"], inplace=True)
             df["Power"] = df["Power"].astype(float)
             # plot x = performance/target load, y = power
-            sns.lineplot(x="Performance/Target Load", y="Power", data=df, ax=ax,
-                         label=f["pc_model"], alpha=0.1, color="blue")
+            sns.lineplot(
+                x="Performance/Target Load",
+                y="Power",
+                data=df,
+                ax=ax,
+                label=f["pc_model"],
+                alpha=0.1,
+                color="blue",
+            )
 
     ax.set_xlabel("Performance/Target Load")
     ax.set_ylabel("Power (W)")

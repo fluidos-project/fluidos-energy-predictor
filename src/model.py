@@ -6,7 +6,7 @@ import tensorflow as tf
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 
 from src import parameters as pm
-from src.data import obtain_vectors
+from src.data import obtain_vectors, obtain_vectors_inmemory
 from src.plot import save_prediction, plot_prediction
 
 
@@ -109,6 +109,7 @@ def predict(
     }
 
 
+# noinspection PyUnresolvedReferences
 def predict_inmemory(
     model: tf.keras.Sequential,
     merged_data: dict[int, dict[str, float]],
@@ -120,6 +121,9 @@ def predict_inmemory(
     # obtain_vectors_inmemory()
     cpu_data = [merged_data[timestamp]["cpu"] for timestamp in merged_data]
     mem_data = [merged_data[timestamp]["mem"] for timestamp in merged_data]
+
+    cpu_data = np.array(cpu_data).reshape(-1, 1)
+    mem_data = np.array(mem_data).reshape(-1, 1)
 
     xx2, y2 = obtain_vectors_inmemory(cpu_data, mem_data, power_curve)
     if xx2 is None or y2 is None:
@@ -134,7 +138,4 @@ def predict_inmemory(
     log.info(f"Expected power consumption: {y2_input}")
     log.info(f"Predicted power consumption: {yhat}")
 
-    return {
-        "y2": y2_input,
-        "yhat": yhat
-    }
+    return {"y2": y2_input, "yhat": yhat}

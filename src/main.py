@@ -3,6 +3,7 @@ import logging as log
 import os
 from datetime import datetime
 
+import numpy as np
 import tensorflow as tf
 
 import src.model as modelmd
@@ -48,7 +49,9 @@ def ask_model_name(models: list[str]) -> str:
     return name
 
 
-def ask_decision(model_name: str, train_data: list[list[float]]) -> tuple[str, bool]:
+def ask_decision(
+    model_name: str, train_data: list[str], power_curve: list[np.ndarray]
+) -> tuple[str, bool]:
     action = "n"
     print(f"Chosen model name: {model_name}")
     if os.path.exists(pm.MODEL_FOLDER + "/" + model_name + "/model.keras"):
@@ -84,7 +87,7 @@ def ask_decision(model_name: str, train_data: list[list[float]]) -> tuple[str, b
                 case "s":
                     from hp import search_params
 
-                    search_params.search_hp(train_data)
+                    search_params.search_hp(train_data, power_curve)
                     exit(0)
                 case "e":
                     print("Exiting...")
@@ -157,14 +160,14 @@ def main():
     os.makedirs(pm.CACHE_FOLDER, exist_ok=True)
 
     train_data, test_data = fetch_datasets(args.machine, banlist_file=pm.BANLIST_FILE)
-    power_curve = fetch_power_curve(args.curve)
+    power_curve: list[np.ndarray] = fetch_power_curve(args.curve)
 
     models = sorted([i.split(".")[0] for i in os.listdir(pm.MODEL_FOLDER)])
 
     if model_name is None:
         model_name = ask_model_name(models)
     if action is None:
-        action, new_model = ask_decision(model_name, train_data)
+        action, new_model = ask_decision(model_name, train_data, power_curve)
     else:
         if model_name in models:
             new_model = False
@@ -252,7 +255,14 @@ def main():
 
         # Save the curve information on disk
         with open(local_model_folder + "/power_curve.json", "w") as f:
-            os.system(f"cp {power_curve} {local_model_folder}/power_curve.json")
+            cpu_pc = power_curve[0]
+            mem_pc = power_curve[1]
+            np.savetxt(
+                local_model_folder + "/power_curve_cpu.csv", cpu_pc, delimiter=","
+            )
+            np.savetxt(
+                local_model_folder + "/power_curve_mem.csv", mem_pc, delimiter=","
+            )
 
         log.info("Saved model to disk")
         plot_history(history)

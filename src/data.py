@@ -10,7 +10,7 @@ from src.support import dt
 from src.support.log import tqdm_wrapper
 
 
-def fetch_power_curve(file: str) -> list[np.ndarray]:
+def fetch_power_curve(file: str) -> list[np.ndarray] | None:
     spec_folder = pm.SPEC_FOLDER
 
     if os.path.exists(f"{spec_folder}/.DS_Store"):
@@ -56,7 +56,9 @@ def fetch_power_curve(file: str) -> list[np.ndarray]:
 
             log.info(f"CPU energy consumption: {[round(i, 0) for i in cpu_data]}")
             log.info(f"Memory energy consumption: {[round(i, 0) for i in mem_data]}")
-            return [cpu_data, mem_data]
+            cpu_data_out: np.ndarray = np.array(cpu_data)
+            mem_data_out: np.ndarray = np.array(mem_data)
+            return [cpu_data_out, mem_data_out]
     else:
         raise FileNotFoundError(f"File {file}.json not found in {spec_folder}")
 
@@ -85,7 +87,7 @@ def fetch_datasets(
     ]
     if len(available_folders) == 0:
         raise EnvironmentError(
-            f"No folders found in {gcd_folder}. Please run obtain some datasets first."
+            f"No folders found in {gcd_folder}. Please obtain some datasets first."
         )
 
     if folder is None or folder == "":
@@ -342,7 +344,7 @@ def obtain_vectors_inmemory(
         future_len=future_len,
         steps_out=pm.STEPS_OUT,
         filename="inmemory_" + str(random.randint(0, 100000)),
-        power_curve=power_curve
+        power_curve=power_curve,
     )
 
     return xx, y
