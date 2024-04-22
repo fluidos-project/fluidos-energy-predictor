@@ -14,34 +14,41 @@ from src.plot import save_prediction, plot_prediction
 #     return tf.keras.losses.MSE(y_true, y_pred)
 
 
+# noinspection PyUnresolvedReferences
 def new_model(hp: kt.HyperParameters = None) -> tf.keras.models.Model:
     if hp is None:
         filters = pm.FILTERS
         ksize = pm.KSIZE
     else:
-        filters = hp.Int('filters', min_value=16, max_value=256, step=16)
-        ksize = hp.Int('ksize', min_value=3, max_value=9, step=2)
+        filters = hp.Int("filters", min_value=16, max_value=256, step=16)
+        ksize = hp.Int("ksize", min_value=3, max_value=9, step=2)
 
     loss = tf.keras.losses.MeanSquaredError()
     optimizer = tf.keras.optimizers.Adam(learning_rate=pm.LEARNING_RATE)
 
     input_layer = tf.keras.layers.Input(shape=(pm.STEPS_IN, pm.N_FEATURES))
 
-    conv1 = tf.keras.layers.Conv1D(filters=filters, kernel_size=ksize, activation='relu')(input_layer)
+    conv1 = tf.keras.layers.Conv1D(
+        filters=filters, kernel_size=ksize, activation="relu"
+    )(input_layer)
     conv1 = tf.keras.layers.BatchNormalization()(conv1)
     conv1 = tf.keras.layers.ReLU()(conv1)
 
-    conv2 = tf.keras.layers.Conv1D(filters=filters, kernel_size=ksize, activation='relu')(conv1)
+    conv2 = tf.keras.layers.Conv1D(
+        filters=filters, kernel_size=ksize, activation="relu"
+    )(conv1)
     conv2 = tf.keras.layers.BatchNormalization()(conv2)
     conv2 = tf.keras.layers.ReLU()(conv2)
 
-    conv3 = tf.keras.layers.Conv1D(filters=filters, kernel_size=ksize, activation='relu')(conv2)
+    conv3 = tf.keras.layers.Conv1D(
+        filters=filters, kernel_size=ksize, activation="relu"
+    )(conv2)
     conv3 = tf.keras.layers.BatchNormalization()(conv3)
     conv3 = tf.keras.layers.ReLU()(conv3)
 
     gap = tf.keras.layers.GlobalAveragePooling1D()(conv3)
 
-    output_layer = tf.keras.layers.Dense(pm.STEPS_OUT, activation='linear')(gap)
+    output_layer = tf.keras.layers.Dense(pm.STEPS_OUT, activation="linear")(gap)
 
     model = tf.keras.models.Model(inputs=input_layer, outputs=output_layer)
 
@@ -56,9 +63,10 @@ def new_model(hp: kt.HyperParameters = None) -> tf.keras.models.Model:
     #           rankdir="LR", dpi=72)
 
 
-def predict(model: tf.keras.Sequential,
-            test_data: list[str],
-            power_curve: list[np.ndarray]) -> dict:
+# noinspection PyUnresolvedReferences
+def predict(
+    model: tf.keras.Sequential, test_data: list[str], power_curve: list[np.ndarray]
+) -> dict:
     yhat_history = np.ndarray(shape=(0, pm.STEPS_OUT))
     y2_history = np.ndarray(shape=(0, pm.STEPS_OUT))
     for file in test_data:
