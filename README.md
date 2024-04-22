@@ -64,9 +64,20 @@ A Dockerfile is provided within the project. If you want to build the image for 
 to run the image with the following `docker-compose.yml` file:
 
 ```bash
-  -v /path/to/data/folder:/app/data
-  -v /path/to/models/folder:/app/models
-  -v /path/to/output/folder:/app/out
+name: fluidos-energy-predictor
+services:
+    fluidos-energy-predictor:
+        stdin_open: true
+        tty: true
+        container_name: predictor
+        volumes:
+            - ${DATA_TRAINING_FOLDER}:/app/data
+            - ${MODELS_TRAINING_FOLDER}:/app/models
+            - ${OUT_TRAINING_FOLDER}:/app/out
+        environment:
+            - TZ=Europe/Rome
+        restart: unless-stopped
+        image: ghcr.io/risingfbk/fluidos-energy-predictor:github
 ```
 
 ## Data folder structure
