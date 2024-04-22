@@ -14,7 +14,7 @@ certain machine,
 and outputs the predicted energy demand for the following day.
 
 -----
-> **As of October 2nd, 2023, this program is meant as a proof-of-concept, still in development and is
+> **As of April 22nd, 2024, this program is meant as a proof-of-concept, still in development and is
 not ready for production use. Features may be added or removed at any time. Accuracy may not be perfect.
 The program is provided as-is, with no guarantees of any kind.**
 
@@ -26,36 +26,42 @@ The program is provided as-is, with no guarantees of any kind.**
 Due to the machine-specific nature of the projects, no pre-trained models are provided. To use the project, you will
 need to train your own model.
 
-You may choose between the following installation methods:
+### Prerequisites
+
+First of all, set the environment variables in the `.env` file, which is purposely not included in the repository for
+security reasons. The `.env` file must be placed in the root folder of the project, and must contain the following
+variables:
+
+```bash
+export DATA_TRAINING_FOLDER=/path/to/data/folder
+export MODELS_TRAINING_FOLDER=/path/to/models/folder
+export OUT_TRAINING_FOLDER=/path/to/output/folder
+export TELEMETRY_NODE_HOST=127.0.0.1
+export TELEMETRY_NODE_PORT=5000
+```
+
+Each variable represents the following:
+- the `/path/to/data` folder is used for storing the initial training data (read below for more information on the folder 
+  structure);
+- the `/path/to/models` folder is used for storing the trained models;
+- the `/path/to/output` folder is used for storing the predictions and test results;
+
+You may then choose between the following installation methods:
 
 ### Classic
 
 Create a `python3` virtual environment using the software of your choice (`venv`, `conda`, or anything else). Install
 `python3==3.11.4` on it. Then, install the dependencies using `pip install -r requirements.txt`.
 
-On macOS platforms running an Apple Silicon processor, you may need to install `tensorflow-macos` instead of
-`tensorflow`. [This page](https://developer.apple.com/metal/tensorflow-plugin/) provides precise information on how to
-correctly install the Tensorflow plugin on these platforms.
+On macOS platforms running an Apple Silicon processor, you may want to install `tensorflow-metal` 
+to accelerate GPU processing. [This page](https://developer.apple.com/metal/tensorflow-plugin/)
+provides precise information on how to correctly install the Tensorflow plugin on these platforms.
 
 ### Docker
 
 A Dockerfile is provided within the project. If you want to build the image for yourself, run
-`docker build -t fluidos-energy-demand-predictor .`
-
-Then, run the image using the following command:
-
-```bash
-docker run -it \
-    --name=predictor \
-    -v /path/to/data/folder:/app/data \
-    -v /path/to/models/folder:/app/models \
-    -v /path/to/out/folder:/app/out \
-    -e TZ=Europe/Rome \
-    --restart=unless-stopped \
-    ghcr.io/risingfbk/fluidos-energy-predictor:github
-```
-
-Before deploying, make sure to edit the following lines:
+`docker build -t fluidos-energy-demand-predictor .` To run the image you may use `docker compose`
+to run the image with the following `docker-compose.yml` file:
 
 ```bash
   -v /path/to/data/folder:/app/data
@@ -63,16 +69,9 @@ Before deploying, make sure to edit the following lines:
   -v /path/to/output/folder:/app/out
 ```
 
-assigning the path to a folder on your machine to the:
-
-- `/app/data` folder, which will be used for fetching the training data (read below for more information on the folder 
-  structure);
-- `/app/models` folder, which will be used for storing the trained models;
-- `/app/out` folder, which will be used for storing the predictions and test results.
-
 ## Data folder structure
 
-The data folder must contain the following files:
+For the training, the data folder must contain the following files:
 
 ```bash
 ├── gcd
