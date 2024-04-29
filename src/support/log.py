@@ -6,7 +6,7 @@ import sys
 
 from tqdm import tqdm
 
-import src.parameters as pm
+import parameters as pm
 
 
 class CustomFormatter(log.Formatter):

@@ -4,8 +4,8 @@ import os
 import numpy as np
 from matplotlib import pyplot as plt
 
-from src import parameters as pm
-from src.support.log import initialize_log
+import parameters as pm
+from support.log import initialize_log
 
 
 def save_prediction(yhat, y2):

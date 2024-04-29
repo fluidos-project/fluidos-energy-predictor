@@ -1,8 +1,8 @@
 import keras_tuner
 import tensorflow as tf
 
-from src.data import obtain_vectors
-from src.model import new_model
+from data import obtain_vectors
+from model import new_model
 
 
 # noinspection PyUnresolvedReferences

@@ -11,7 +11,7 @@ import tensorflow as tf
 from prometheus_api_client import PrometheusConnect
 
 import parameters as pm
-import src.model as modelmd
+import model as modelmd
 from main import ask_model_name
 from support.log import initialize_log
 
