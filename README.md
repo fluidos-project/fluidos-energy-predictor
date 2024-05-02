@@ -17,8 +17,6 @@ and outputs the predicted energy demand for the following day.
 > **As of April 22nd, 2024, this program is meant as a proof-of-concept, still in development and is
 not ready for production use. Features may be added or removed at any time. Accuracy may not be perfect.
 The program is provided as-is, with no guarantees of any kind.**
-
-> The program is currently only tested on macOS and Linux platforms. Windows support is not yet verified.
 ----
 
 ## Installation
@@ -41,6 +39,7 @@ export TELEMETRY_NODE_PORT=5000
 ```
 
 Each variable represents the following:
+
 - the `/path/to/data` folder is used for storing the initial training data (read below for more information on the folder 
   structure);
 - the `/path/to/models` folder is used for storing the trained models;
@@ -78,14 +77,6 @@ services:
             - TZ=Europe/Rome
         restart: unless-stopped
         image: ghcr.io/risingfbk/fluidos-energy-predictor:github
-```
-
-MacOS users running on Apple Silicon processors may have issues on new `numpy` versions
-due to an impossibility of building a wheel for `h5py`. In this case, build the image
-with the `Dockerfile` locate in `docker/arm64-darwin`:
-
-```bash
-docker build -t fluidos-energy-demand-predictor -f docker/arm64-darwin/Dockerfile .
 ```
 
 Pre-built images are available on the [GitHub Container Registry](https://github.com/fluidos-project/fluidos-energy-predictor/pkgs/container/fluidos-energy-predictor)
