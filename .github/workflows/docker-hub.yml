@@ -14,12 +14,17 @@ env:
   ORG_NAME: fluidos
   BASE_BRANCH: github
 
-
 jobs:
   push_to_registry:
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     steps:
+      - name: Check if the repository is "fluidos/energy-predictor"
+        run: |
+          if [ "${{ github.repository }}" != "fluidos/energy-predictor" ]; then
+            echo "This workflow is only for the fluidos/energy-predictor repository."
+            exit 0
+          fi
       - name: Check out the repo
         uses: actions/checkout@v4
         with:
@@ -63,6 +68,7 @@ jobs:
           push: true
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.BASE_BRANCH }} , ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.GIT_TAG }} , ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
           labels: ${{ steps.meta.outputs.labels }}
+          platforms: linux/amd64,linux/arm64
       
       # - name: Build Docker image with local git tag 
       #   run: |
