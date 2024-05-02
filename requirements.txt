@@ -14,7 +14,6 @@ fonttools==4.51.0
 gast==0.5.4
 google-pasta==0.2.0
 grpcio==1.62.2
-h5py==3.11.0
 httmock==1.4.0
 idna==3.7
 itsdangerous==2.2.0
