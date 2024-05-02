@@ -72,6 +72,6 @@ jobs:
           file: ./Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.BASE_BRANCH }} , ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.GIT_TAG }} , ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:fluidos, ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.GIT_TAG }} , ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
           labels: ${{ steps.meta.outputs.labels }}
       
