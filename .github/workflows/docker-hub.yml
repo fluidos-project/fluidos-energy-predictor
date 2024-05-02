@@ -2,16 +2,13 @@ name: Publish Docker image on FLUIDOS Docker Hub
 
 on:
   push:
-    branches: [ "github" ]
+    branches: [ "fluidos" ]
     tags: [ 'v*.*.*' ]
-  # pull_request:
-  #   branches: [ "github" ]
   release:
     types: [published]
 
 env:
   REGISTRY: docker.io
-  # github.repository as <account>/<repo>
   IMAGE_NAME: fluidos/energy-predictor
   IMAGE_BASE_NAME: energy-predictor
   ORG_NAME: fluidos
