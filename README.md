@@ -60,7 +60,7 @@ provides precise information on how to correctly install the Tensorflow plugin o
 ### Docker
 
 A Dockerfile is provided within the project. If you want to build the image for yourself, run
-`docker build -t fluidos-energy-demand-predictor .` To run the image you may use `docker compose`
+`docker build -t fluidos-energy-demand-predictor .` You may want to use `docker compose`
 to run the image with the following `docker-compose.yml` file:
 
 ```bash
