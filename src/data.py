@@ -5,9 +5,9 @@ import random
 
 import numpy as np
 
-from src import parameters as pm
-from src.support import dt
-from src.support.log import tqdm_wrapper
+import parameters as pm
+from support import dt
+from support.log import tqdm_wrapper
 
 
 def fetch_power_curve(file: str) -> list[np.ndarray] | None:

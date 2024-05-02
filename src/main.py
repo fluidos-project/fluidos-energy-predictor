@@ -6,11 +6,11 @@ from datetime import datetime
 import numpy as np
 import tensorflow as tf
 
-import src.model as modelmd
-import src.parameters as pm
-from src.data import obtain_vectors, fetch_datasets, fetch_power_curve
-from src.plot import plot_history
-from src.support.log import initialize_log
+import model as modelmd
+import parameters as pm
+from data import obtain_vectors, fetch_datasets, fetch_power_curve
+from plot import plot_history
+from support.log import initialize_log
 
 
 def ask_model_name(models: list[str]) -> str:

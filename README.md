@@ -80,6 +80,17 @@ services:
         image: ghcr.io/risingfbk/fluidos-energy-predictor:github
 ```
 
+MacOS users running on Apple Silicon processors may have issues on new `numpy` versions
+due to an impossibility of building a wheel for `h5py`. In this case, build the image
+with the `Dockerfile` locate in `docker/arm64-darwin`:
+
+```bash
+docker build -t fluidos-energy-demand-predictor -f docker/arm64-darwin/Dockerfile .
+```
+
+Pre-built images are available on the [GitHub Container Registry](https://github.com/fluidos-project/fluidos-energy-predictor/pkgs/container/fluidos-energy-predictor)
+and on [Docker Hub](https://hub.docker.com/r/fluidos/energy-predictor), both for `x86_64` and `arm64` platforms.
+
 ## Data folder structure
 
 For the training, the data folder must contain the following files:

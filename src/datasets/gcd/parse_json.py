@@ -5,9 +5,9 @@ import numpy as np
 from matplotlib import pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 
-import src.parameters as pm
-import src.support.dt as dt
-from src.support.log import tqdm_wrapper
+import parameters as pm
+import support.dt as dt
+from support.log import tqdm_wrapper
 
 if __name__ == "__main__":
     granularity = pm.GRANULARITY

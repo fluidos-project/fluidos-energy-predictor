@@ -5,9 +5,9 @@ import numpy as np
 import tensorflow as tf
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error
 
-from src import parameters as pm
-from src.data import obtain_vectors, obtain_vectors_inmemory
-from src.plot import save_prediction, plot_prediction
+import parameters as pm
+from data import obtain_vectors, obtain_vectors_inmemory
+from plot import save_prediction, plot_prediction
 
 
 # def custom_loss(y_true, y_pred):

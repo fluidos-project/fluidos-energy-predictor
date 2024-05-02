@@ -1,6 +1,6 @@
 # Dataset parameters
 # Span of a single step in minutes
-from src.support.dt import WEEK_IN_MINUTES
+from support.dt import WEEK_IN_MINUTES
 
 GRANULARITY = 15
 # Offset in minutes between each file

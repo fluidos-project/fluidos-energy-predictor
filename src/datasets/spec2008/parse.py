@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 import requests as req
 
-from src.support.log import tqdm_wrapper
+from support.log import tqdm_wrapper
 
 URL = "https://www.spec.org/power_ssj2008/results/power_ssj2008.html"
 
