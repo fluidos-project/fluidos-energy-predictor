@@ -1,6 +1,12 @@
 # FLUIDOS Energy Demand Predictor
 
-[![Publish Docker Image on GHCR - GitHub Container Registry](https://github.com/risingfbk/fluidos-energy-predictor/actions/workflows/docker-ghcr.yml/badge.svg)](https://github.com/risingfbk/fluidos-energy-predictor/actions/workflows/docker-ghcr.yml)
+- GHCR: [risingfbk/fluidos-energy-predictor](https://github.com/risingfbk/fluidos-energy-predictor)
+[![Publish Docker Image on GHCR - risingfbk](https://github.com/risingfbk/fluidos-energy-predictor/actions/workflows/docker-ghcr.yml/badge.svg)](https://github.com/risingfbk/fluidos-energy-predictor/actions/workflows/docker-ghcr.yml)
+
+- GHCR: [fluidos-project/fluidos-energy-predictor](https://github.com/fluidos-project/fluidos-energy-predictor)
+[![Publish Docker Image on GHCR - fluidos-project](https://github.com/fluidos-project/fluidos-energy-predictor/actions/workflows/docker-ghcr.yml/badge.svg)](https://github.com/fluidos-energy-predictor/fluidos-energy-predictor/actions/workflows/docker-ghcr.yml)
+
+- Docker Hub: [fluidos/energy-predictor](https://hub.docker.com/r/fluidos/energy-predictor)
 [![Publish Docker image on FLUIDOS Docker Hub](https://github.com/fluidos-project/fluidos-energy-predictor/actions/workflows/docker-hub.yml/badge.svg)](https://github.com/fluidos-project/fluidos-energy-predictor/actions/workflows/docker-hub.yml)
 
 ## Overview
