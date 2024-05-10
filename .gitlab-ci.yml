@@ -15,6 +15,11 @@ variables:
   # DOCKER_HOST: tcp://docker:2376
   CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
   CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+  DATA_TRAINING_FOLDER: data
+  MODELS_TRAINING_FOLDER: models
+  OUT_TRAINING_FOLDER:  out
+  TELEMETRY_NODE_HOST: 127.0.0.1
+  TELEMETRY_NODE_PORT: 5000
 
 build:
   stage: build
@@ -26,7 +31,7 @@ test:
   stage: test
   script:
     - docker pull $CONTAINER_TEST_IMAGE
-    - docker run $CONTAINER_TEST_IMAGE python3 src/main.py
+    - docker run $CONTAINER_TEST_IMAGE ./gitlab-ci-test.sh 
 
 release-image:
   stage: release
