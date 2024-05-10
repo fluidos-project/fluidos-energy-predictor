@@ -1,5 +1,7 @@
 .direnv
 .env
+.gitlab-ci.yml
+gitlab-ci-test.sh
 
 data
 models
