@@ -1,6 +1,7 @@
 # Dataset parameters
 # Span of a single step in minutes
 from support.dt import WEEK_IN_MINUTES
+import os
 
 GRANULARITY = 15
 # Offset in minutes between each file
@@ -20,13 +21,15 @@ PATIENCE = 150
 
 LEARNING_RATE = 0.02
 
-LOG_FOLDER = "out"
+LOG_FOLDER = os.environ.get("OUT_TRAINING_FOLDER", "out")
+MODEL_FOLDER = os.environ.get("MODEL_FOLDER", "models")
+DATA_FOLDER = os.environ.get("DATA_FOLDER", "data")
+
+GCD_FOLDER = os.path.join(DATA_FOLDER, "gcd")
+SPEC_FOLDER = os.path.join(DATA_FOLDER, "spec2008_agg")
+CACHE_FOLDER = os.path.join(DATA_FOLDER, "cache")
 
 DEFAULT_MODEL = "model1"
-MODEL_FOLDER = "models"
-GCD_FOLDER = "data/gcd"
-SPEC_FOLDER = "data/spec2008_agg"
-CACHE_FOLDER = "data/cache"
 BANLIST_FILE = "banlist"
 
 TEST_FILE_AMOUNT = 24
