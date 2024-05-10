@@ -31,7 +31,7 @@ test:
   stage: test
   script:
     - docker pull $CONTAINER_TEST_IMAGE
-    - docker run $CONTAINER_TEST_IMAGE ./gitlab-ci-test.sh 
+    - docker run --entrypoint "/bin/bash" $CONTAINER_TEST_IMAGE ./gitlab-ci-test.sh 
 
 release-image:
   stage: release
