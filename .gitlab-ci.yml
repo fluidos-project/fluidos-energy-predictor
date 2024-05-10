@@ -1,137 +1,46 @@
-# build-job:
-#   stage: build
-#   script:
-#     - echo "Hello, $GITLAB_USER_LOGIN!"
-
-# test-job1:
-#   stage: test
-#   script:
-#     - echo "This job tests something"
-
-# test-job2:
-#   stage: test
-#   script:
-#     - echo "This job tests something, but takes more time than test-job1."
-#     - echo "After the echo commands complete, it runs the sleep command for 20 seconds"
-#     - echo "which simulates a test that runs 20 seconds longer than test-job1"
-#     - sleep 20
-
-# deploy-prod:
-#   stage: deploy
-#   script:
-#     - echo "This job deploys something from the $CI_COMMIT_BRANCH branch."
-#   environment: production
-
-
-default :
-  image: golang:1.18
+default:
+  image: docker:20.10.16
+  services:
+    - docker:20.10.16-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
 
 stages:
   - build
   - test
+  - release
   - deploy
 
-# build-amd64:
-#   stage: build
-#   variables:
-#     # When using dind, it's wise to use the overlayfs driver for
-#     # improved performance.
-#     DOCKER_DRIVER: overlay2
-#     IMAGE: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG
-#   image: docker:git
-#   services:
-#     - docker:dind
-#   before_script:
-#     - docker info
-#   script:
-#     - ./hacks/build-docker-image
+variables:
+  # DOCKER_HOST: tcp://docker:2376
+  CONTAINER_TEST_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+  CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
 
-
-build-multiarch:
+build:
   stage: build
-  variables:
-    # When using dind, it's wise to use the overlayfs driver for
-    # improved performance.
-    DOCKER_DRIVER: overlay2
-    IMAGE: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG
-  image: multiarch/qemu-user-static
-  services:
-    - docker:dind
-  before_script:
-    - docker info
-  # - docker login -u $DOCKER_HUB_USER -p $DOCKER_HUB_TOKEN
-    - docker buildx create --use
-    # - docker buildx build --platform linux/arm/v7,linux/arm64/v8,linux/amd64 --tag your-username/multiarch-example:gitlab .
-    # - docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
   script:
-    - docker buildx create --use
-    - docker buildx build --push --platform linux/arm/v7,linux/arm64/v8,linux/amd64 -t $IMAGE .
+    - docker build --pull -t $CONTAINER_TEST_IMAGE .
+    - docker push $CONTAINER_TEST_IMAGE
 
-# build-arm64v8:
-#   stage: build
-#   variables:
-#     # When using dind, it's wise to use the overlayfs driver for
-#     # improved performance.
-#     DOCKER_DRIVER: overlay2
-#     IMAGE: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG
-#   image: docker:git
-#   services:
-#     - docker:dind
-#   before_script:
-#     - docker info
-#   script:
-#     - ./hacks/build-docker-image
+test:
+  stage: test
+  script:
+    - docker pull $CONTAINER_TEST_IMAGE
+    - docker run $CONTAINER_TEST_IMAGE python3 src/main.py
 
+release-image:
+  stage: release
+  script:
+    - docker pull $CONTAINER_TEST_IMAGE
+    - docker tag $CONTAINER_TEST_IMAGE $CONTAINER_RELEASE_IMAGE
+    - docker push $CONTAINER_RELEASE_IMAGE
+  only:
+    - master 
 
-
-# build-helm-chart:
-#   stage: build
-#   image:
-#     name: alpine/helm:3.5.4
-#     entrypoint: [""]
-#   before_script:
-#     - export HELM_EXPERIMENTAL_OCI=1
-#   variables:
-#     CHART: $CI_REGISTRY_IMAGE/helm/$CI_PROJECT_NAME
-#   script:
-#     - helm registry login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-#     - helm chart save helm_pkg/$CI_PROJECT_NAME/ $CHART:$CI_COMMIT_TAG
-#     - helm chart push $CHART:$CI_COMMIT_TAG
-#   only: # build helm chart only if a tag is present
-#     - tags
-
-# test-fadepl-controller:
-#   stage: test
-#   image: golang:1.18
-#   variables:
-#     REPO_NAME: gitlab.fbk.eu/$CI_REGISTRY_IMAGE
-#   before_script:
-#   - mkdir -p $GOPATH/src/$(dirname $REPO_NAME)
-#   - ln -svf $CI_PROJECT_DIR $GOPATH/src/$REPO_NAME
-#   - cd $GOPATH/src/$REPO_NAME
-#   script:
-#     - ./utilities/bin/test-docker-image
-#   only: # only if in production
-#     - $RELEASE == "production"
-
-# include:
-#   - template: Security/Container-Scanning.gitlab-ci.yml
-
-# deploy-fadepl-controller:
-#   stage: deploy
-#   before_script:
-#     - export HELM_EXPERIMENTAL_OCI=1
-#   variables:
-#     CHART: $CI_REGISTRY_IMAGE/helm/$CI_PROJECT_NAME
-#   environment:
-#     name: testing
-#   tags:
-#     - deploy-fogatlas
-#   script:
-#     - helm -n fogatlas uninstall fadepl-controller || exit_code=$?
-#     - kubectl delete -f helm_pkg/$CI_PROJECT_NAME/crds || exit_code=$?
-#     - helm registry login -u gitlab-ci-token -p $CI_JOB_TOKEN $CI_REGISTRY
-#     - helm pull oci://$CHART --version $CI_COMMIT_TAG
-#     - helm install fadepl-controller $CI_PROJECT_NAME-$CI_COMMIT_TAG.tgz -n fogatlas
-#   only: # only if in production
-#     - $RELEASE == "production"
+# deploy:
+#  stage: deploy
+#  script:
+#    - ./deploy.sh
+#  only:
+#    - main
+#  environment: production
