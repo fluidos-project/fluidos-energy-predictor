@@ -1,5 +1,8 @@
 # FLUIDOS Energy Demand Predictor
 
+- FBK GitLab: [mfranzil/fluidos-wp6-impl](https://gitlab.fbk.eu/mfranzil/fluidos-wp6-impl)
+[![GitLab Pipeline Status](https://gitlab.fbk.eu/mfranzil/fluidos-wp6-impl/badges/master/pipeline.svg?ignore_skipped=true)](https://gitlab.fbk.eu/mfranzil/fluidos-wp6-impl/-/blob/master/.gitlab-ci.yml)
+
 - GHCR: [risingfbk/fluidos-energy-predictor](https://github.com/risingfbk/fluidos-energy-predictor)
 [![Publish Docker Image on GHCR - risingfbk](https://github.com/risingfbk/fluidos-energy-predictor/actions/workflows/docker-ghcr.yml/badge.svg)](https://github.com/risingfbk/fluidos-energy-predictor/actions/workflows/docker-ghcr.yml)
 
