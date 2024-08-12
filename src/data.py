@@ -6,7 +6,6 @@ import random
 import numpy as np
 
 import parameters as pm
-from support import dt
 from support.log import tqdm_wrapper
 
 
@@ -230,21 +229,15 @@ def get_predicted_power(param: np.ndarray, power_curve: list[np.ndarray]) -> flo
 def split_sequence(
     sequence: np.ndarray,
     past_len: int,
-    future_len: int,
-    steps_out: int,
+    steps_out: tuple[int, int],  # (future_len, features)
     filename: str,
     power_curve: list[np.ndarray],
 ) -> tuple[np.ndarray | None, np.ndarray | None]:
-    # split the sequence into samples s.t.
-    # X = [past_len, N_FEATURES]
-    # y = [steps_out, 1]
-    # where steps_out is calculated using get_power_from_sequence, and requires future_len samples
-    # to be computed
-    seq_len = len(sequence) - future_len - past_len + 1
     try:
-        xx, y = np.ndarray(shape=(seq_len, past_len, pm.N_FEATURES)), np.ndarray(
-            shape=(seq_len, steps_out)
-        )
+        xx, y = [], []
+        # xx, y = np.ndarray(shape=(seq_len, past_len, pm.N_FEATURES)), np.ndarray(
+        #     shape=(seq_len, steps_out[0], steps_out[1])
+        # )
     except ValueError:
         log.exception(f"Error while splitting sequence (might be too short?)")
         return None, None
@@ -253,7 +246,13 @@ def split_sequence(
     desc = ",".join(
         [
             str(a)
-            for a in [past_len, future_len, steps_out, simple_filename, len(sequence)]
+            for a in [
+                past_len,
+                steps_out[0],
+                steps_out[1],
+                simple_filename,
+                len(sequence),
+            ]
         ]
     )
 
@@ -270,18 +269,20 @@ def split_sequence(
         )
     else:
         log.info(f"Generating sequences for {seq_filename}...")
-        for i in tqdm_wrapper(range(seq_len)):
+        for i in tqdm_wrapper(range(len(sequence) - past_len - steps_out[0])):
             end_ix = i + past_len
 
             seq_x = sequence[i:end_ix]
-            seq_y = get_predicted_power(
-                sequence[end_ix : end_ix + future_len], power_curve
-            )
+            seq_y = sequence[end_ix : end_ix + steps_out[0]]
+            # get_predicted_power(
+            # sequence[end_ix : end_ix + future_len], power_curve
+            # )
 
-            seq_x = seq_x.reshape((past_len, pm.N_FEATURES))
+            xx.append(seq_x)
+            y.append(seq_y)
 
-            xx[i] = seq_x
-            y[i] = seq_y
+        xx = np.array(xx)
+        y = np.array(y)
 
         np.save(seq_filename_npy, xx)
         np.save(seq_filename_y_npy, y)
@@ -293,16 +294,22 @@ def obtain_vectors(
     data_file: str | list[str], power_curve: list[np.ndarray]
 ) -> tuple[np.ndarray | None, np.ndarray | None]:
     if isinstance(data_file, list):
-        xx, y = np.ndarray(shape=(0, pm.STEPS_IN, pm.N_FEATURES)), np.ndarray(
-            shape=(0, pm.STEPS_OUT)
-        )
+        xx, y = [], []
         for file in data_file:
             xx_, y_ = obtain_vectors(file, power_curve)
             if xx_ is None or y_ is None:
                 continue
-            xx = np.concatenate((xx, xx_), axis=0)
-            y = np.concatenate((y, y_), axis=0)
-        return xx, y
+            xx.append(xx_)
+            y.append(y_)
+
+        # convert xx to (n, 96, 672, 2) to (n * 96, 672, 2)
+        xx = np.array(xx)
+        y = np.array(y)
+
+        xx = np.concatenate(xx, axis=0)
+        y = np.concatenate(y, axis=0)
+
+        return np.array(xx), np.array(y)
 
     cpu, mem = load_data(data_file)
     dataset = []
@@ -312,11 +319,9 @@ def obtain_vectors(
     if len(dataset.shape) == 1:
         dataset = dataset.reshape(-1, 1)
 
-    future_len = pm.STEPS_IN // dt.WEEK_IN_DAYS
     xx, y = split_sequence(
         sequence=dataset,
         past_len=pm.STEPS_IN,
-        future_len=future_len,
         steps_out=pm.STEPS_OUT,
         filename=data_file,
         power_curve=power_curve,
@@ -339,12 +344,9 @@ def obtain_vectors_inmemory(
     if len(dataset.shape) == 1:
         dataset = dataset.reshape(-1, 1)
 
-    future_len = pm.STEPS_IN // dt.WEEK_IN_DAYS
-
     xx, y = split_sequence(
         sequence=dataset,
         past_len=pm.STEPS_IN,
-        future_len=future_len,
         steps_out=pm.STEPS_OUT,
         filename="inmemory_" + str(random.randint(0, 100000)),
         power_curve=power_curve,

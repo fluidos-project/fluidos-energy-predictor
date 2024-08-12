@@ -5,14 +5,15 @@ import logging as log
 import os
 import re
 
-from flask import Flask
 import numpy as np
 import tensorflow as tf
+from flask import Flask
 from prometheus_api_client import PrometheusConnect
 
-import parameters as pm
 import model as modelmd
+import parameters as pm
 from main import ask_model_name
+from src.data import get_predicted_power
 from support.log import initialize_log
 
 CPU_QUERY = (
@@ -262,7 +263,7 @@ def main():
             timedata,
             power_curve,
         )
-        metrics[node] = results.tolist()
+        metrics[node] = [results.tolist(), get_predicted_power(results, power_curve)]
 
     # Finally expose the data with a Flask server
     # We will expose the data in the following format:

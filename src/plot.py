@@ -8,11 +8,19 @@ import parameters as pm
 from support.log import initialize_log
 
 
-def save_prediction(yhat, y2):
+def save_prediction(yhat, y2, diff):
     # Dump the prediction to a file
     os.makedirs(pm.LOG_FOLDER + "/pred", exist_ok=True)
-    np.savetxt(pm.LOG_FOLDER + "/pred/prediction.csv", yhat, delimiter=",")
-    np.savetxt(pm.LOG_FOLDER + "/pred/actual.csv", y2, delimiter=",")
+    with open(pm.LOG_FOLDER + "/pred/prediction.csv", "w") as f:
+        for i in range(yhat.shape[0]):
+            f.write(",".join([str(x) for x in yhat[i]]) + "\n")
+    with open(pm.LOG_FOLDER + "/pred/actual.csv", "w") as f:
+        for i in range(y2.shape[0]):
+            f.write(",".join([str(x) for x in y2[i]]) + "\n")
+    # with open(pm.LOG_FOLDER + "/pred/diff.csv", "w") as f:
+    #     for i in range(diff.shape[0]):
+    #         f.write(",".join([str(x) for x in diff]) + "\n")
+
     np.save(pm.LOG_FOLDER + "/pred/yhat_history.npy", yhat)
     np.save(pm.LOG_FOLDER + "/pred/y2.npy", y2)
 
@@ -23,22 +31,33 @@ def plot_prediction(yhat, y2, columns, start=0, end=None):
     if end is None:
         end = yhat.shape[0]
 
-    prediction = yhat[start:end, :].flatten()
-    truth = y2[start:end, :].flatten()
+    for run in range(start, end):
+        for feature in range(yhat.shape[3]):
+            plt.figure(figsize=(15, 8))
+            plt.plot(
+                yhat[run, :, :, feature][0],
+                label="prediction",
+                linestyle="-.",
+                alpha=0.7,
+                color="r",
+            )
+            plt.plot(
+                y2[run, :, :, feature][0],
+                label="actual",
+                linestyle="-",
+                alpha=0.5,
+                color="b",
+            )
+            if columns is not None:
+                for j in columns:
+                    plt.axvline(x=j, linestyle="--", alpha=0.3, color="g")
 
-    plt.figure(figsize=(15, 8))
-    # First, plot what was before
-    plt.plot(prediction, label="prediction", linestyle="-.", alpha=0.7, color="r")
-    plt.plot(truth, label="actual", linestyle="-", alpha=0.5, color="b")
-    if columns is not None:
-        for j in columns:
-            plt.axvline(x=j, linestyle="--", alpha=0.3, color="g")
-    plt.legend()
-    plt.xlabel("Predicted day")
-    plt.ylabel("Power (kWh)")
-    plt.title("Prediction vs actual usage of the following day")
-    plt.savefig(pm.LOG_FOLDER + f"/prediction-{start}-{end}.png")
-    plt.close()
+            plt.legend()
+            plt.xlabel("Time")
+            plt.ylabel(f"Usage - feature {feature}")
+            plt.title("Prediction vs actual usage")
+            plt.savefig(pm.LOG_FOLDER + f"/prediction-{run}-f{feature}.png")
+            plt.close()
 
     # fill with color
     # plt.fill_between(

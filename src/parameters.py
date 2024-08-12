@@ -1,25 +1,26 @@
 # Dataset parameters
 # Span of a single step in minutes
-from support.dt import WEEK_IN_MINUTES
 import os
+
+from support.dt import WEEK_IN_MINUTES
 
 GRANULARITY = 15
 # Offset in minutes between each file
 # OFFSET = 24 * 60
 
+# how many minutes are there in a week, divided by 'how often'
 STEPS_IN = WEEK_IN_MINUTES // GRANULARITY
-STEPS_OUT = 1
+STEPS_OUT = (4, 2)
 N_FEATURES = 2
 SPLIT = 0.25
 
-FILTERS = 144
-KSIZE = 3
+USIZE = 20
 
 OVERHEAD = 1
 
-PATIENCE = 150
+PATIENCE = 20
 
-LEARNING_RATE = 0.02
+LEARNING_RATE = 0.002
 
 LOG_FOLDER = os.environ.get("OUT_TRAINING_FOLDER", "out")
 MODEL_FOLDER = os.environ.get("MODEL_FOLDER", "models")

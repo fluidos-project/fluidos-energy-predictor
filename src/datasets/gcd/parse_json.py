@@ -125,8 +125,8 @@ if __name__ == "__main__":
 
     # Scale cpu and mem between 0 and 1
     scaler = MinMaxScaler()
-    newdata[:, 3] = scaler.fit_transform(newdata[:, 3].reshape(-1, 1)).reshape(-1)
-    newdata[:, 4] = scaler.fit_transform(newdata[:, 4].reshape(-1, 1)).reshape(-1)
+    newdata[:, 3] = scaler.fit_transform(newdata[:, 3].reshape(0, 1)).reshape(-1)
+    newdata[:, 4] = scaler.fit_transform(newdata[:, 4].reshape(0, 1)).reshape(-1)
 
     print("Writing data to ", folder_target, name_target)
 
