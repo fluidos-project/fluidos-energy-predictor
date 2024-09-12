@@ -8,7 +8,7 @@ import tensorflow as tf
 
 import model as modelmd
 import parameters as pm
-from data import obtain_vectors, fetch_datasets, fetch_power_curve
+from data import obtain_vectors, fetch_datasets
 from plot import plot_history
 from support.log import initialize_log
 
@@ -109,26 +109,26 @@ def main():
         default=None,
         help="Model name (if unspecified, will be prompted)",
     )
-    parser.add_argument(
-        "--curve",
-        "-c",
-        type=str,
-        default=None,
-        help="Power curve file (if unspecified, will be chosen randomly)",
-    )
+    # parser.add_argument(
+    #     "--curve",
+    #     "-c",
+    #     type=str,
+    #     default=None,
+    #     help="Power curve file (if unspecified, will be chosen randomly)",
+    # )
     parser.add_argument(
         "--epochs",
         "-e",
         type=int,
         default=None,
-        help="Number of epochs (if unspecified, will be prompted)",
+        help="Number of epochs (if unspecified, will be prompted; used only for training)",
     )
     parser.add_argument(
         "--action",
         "-a",
         type=str,
         default=None,
-        help="Action to perform (train, search hyperparameters, test)",
+        help="Action to perform (train, search hyperparameters, inference)",
     )
     parser.add_argument(
         "--machine",
@@ -137,6 +137,7 @@ def main():
         default=None,
         help="GCD machine files to use (if unspecified, will be chosen randomly)",
     )
+
     args = parser.parse_args()
 
     if args.model is not None:
@@ -160,7 +161,8 @@ def main():
     os.makedirs(pm.CACHE_FOLDER, exist_ok=True)
 
     train_data, test_data = fetch_datasets(args.machine, banlist_file=pm.BANLIST_FILE)
-    power_curve: list[np.ndarray] = fetch_power_curve(args.curve)
+    # power_curve: list[np.ndarray] = fetch_power_curve(args.curve)
+    power_curve = []
 
     models = sorted([i.split(".")[0] for i in os.listdir(pm.MODEL_FOLDER)])
 
@@ -174,7 +176,7 @@ def main():
         else:
             new_model = True
 
-    if action not in ["t", "n"]:
+    if action not in ["t", "n", "train", "continue"]:
         raise EnvironmentError("Something went wrong. Decision is not t or n.")
 
     log.info(f"Model name: {model_name}; Retrain: {action}; New model: {new_model}")
@@ -190,31 +192,38 @@ def main():
     print(model.summary())
 
     # Train
-    if action == "t":
-        epochs = 0
-        while True:
+    if action == "t" or action == "train":
+        if args.epochs is not None:
+            epochs = args.epochs
             try:
-                epochs = input("Epochs: ")
-                epochs = float(epochs)
-
-                if int(epochs) != epochs:
-                    print(
-                        "Ah yes, training for a non-integer amount of epochs. That's a good idea."
-                    )
-                    continue
-
                 epochs = int(epochs)
-
-                if epochs <= 0:
-                    print(
-                        "Ah yes, training for 0 epochs. That's a good idea. Congratulations, you broke math."
-                    )
-                    continue
-
-                break
             except ValueError:
                 print("Ah yes, training for NaN epochs. That's a good idea.")
-                continue
+                exit(1)
+        else:
+            while True:
+                try:
+                    epochs = input("Epochs: ")
+                    epochs = float(epochs)
+
+                    if int(epochs) != epochs:
+                        print(
+                            "Ah yes, training for a non-integer amount of epochs. That's a good idea."
+                        )
+                        continue
+
+                    epochs = int(epochs)
+
+                    if epochs <= 0:
+                        print(
+                            "Ah yes, training for 0 epochs. That's a good idea. Congratulations, you broke math."
+                        )
+                        continue
+
+                    break
+                except ValueError:
+                    print("Ah yes, training for NaN epochs. That's a good idea.")
+                    continue
 
         xx, y = obtain_vectors(train_data, power_curve=power_curve)
 
@@ -225,10 +234,10 @@ def main():
             tf.keras.callbacks.ReduceLROnPlateau(
                 monitor="val_loss",
                 factor=0.5,
-                patience=200,
+                patience=50,
                 verbose=1,
                 mode="min",
-                min_lr=1e-6,
+                min_lr=1e-8,
             ),
             tf.keras.callbacks.BackupAndRestore(local_model_folder + "/backup"),
             tf.keras.callbacks.ModelCheckpoint(
@@ -254,16 +263,13 @@ def main():
         tf.keras.models.save_model(model, local_model_folder + "/last_model.keras")
 
         # Save the curve information on disk
-        cpu_pc = power_curve[0]
-        mem_pc = power_curve[1]
-        np.savetxt(local_model_folder + "/power_curve_cpu.csv", cpu_pc, delimiter=",")
-        np.savetxt(local_model_folder + "/power_curve_mem.csv", mem_pc, delimiter=",")
+        # cpu_pc = power_curve[0]
+        # mem_pc = power_curve[1]
+        # np.savetxt(local_model_folder + "/power_curve_cpu.csv", cpu_pc, delimiter=",")
+        # np.savetxt(local_model_folder + "/power_curve_mem.csv", mem_pc, delimiter=",")
 
         log.info("Saved model to disk")
         plot_history(history)
-
-        # restore best model
-        model = tf.keras.models.load_model(local_model_folder + "/model.keras")
 
     # Predict
     results = modelmd.predict(model, test_data, power_curve)
